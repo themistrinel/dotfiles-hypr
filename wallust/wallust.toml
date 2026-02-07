@@ -1,0 +1,12 @@
+
+backend = "kmeans"
+color_space = "lab"
+threshold = 10
+filter = "dark"
+saturation = 180
+
+[templates]
+hyprland = { template = "colors-hyprland.conf", target = "~/.cache/wallust/colors-hyprland.conf" }
+kitty = { template = "colors-kitty.conf", target = "~/.cache/wallust/colors-kitty.conf" }
+gtk3 = { template = "colors-gtk.css", target = "~/.config/gtk-3.0/gtk.css" }
+gtk4 = { template = "colors-gtk.css", target = "~/.config/gtk-4.0/gtk.css" }

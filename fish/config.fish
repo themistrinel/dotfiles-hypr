@@ -1,11 +1,51 @@
 set -g fish_greeting
+
 if status is-interactive
-    # Commands to run in interactive sessions can go here
+    # Starship custom prompt
+    starship init fish | source
+
+    # Direnv + Zoxide
+    command -v direnv &> /dev/null && direnv hook fish | source
+    command -v zoxide &> /dev/null && zoxide init fish --cmd cd | source
+
+    # Better ls
+    alias ls='eza --icons --group-directories-first -1'
+
+    # Abbrs
+    abbr py 'python3'
+    abbr lg 'lazygit'
+    abbr gd 'git diff'
+    abbr ga 'git add .'
+    abbr gc 'git commit -am'
+    abbr gl 'git log'
+    abbr gs 'git status'
+    abbr gst 'git stash'
+    abbr gsp 'git stash pop'
+    abbr gp 'git push'
+    abbr gpl 'git pull'
+    abbr gsw 'git switch'
+    abbr gsm 'git switch main'
+    abbr gb 'git branch'
+    abbr gbd 'git branch -d'
+    abbr gco 'git checkout'
+    abbr gsh 'git show'
+
+    abbr l 'ls'
+    abbr ll 'ls -l'
+    abbr la 'ls -a'
+    abbr lla 'ls -la'
+    abbr anti 'antigravity'
+    abbr ag 'antigravity'
+
+    # Custom colours
+    # cat ~/.local/state/caelestia/sequences.txt 2> /dev/null
+
+    # For jumping between prompts in foot terminal
+    function mark_prompt_start --on-event fish_prompt
+        echo -en "\e]133;A\e\\"
+    end
 end
-fastfetch --kitty-direct /home/xyz/.config/fastfetch/logo/vivian.png
-function fish_prompt
-    set_color purple
-    echo -n '矢 '
-    set_color normal
-    echo -n (prompt_pwd) ' > '
-end
+
+
+# Added by LM Studio CLI tool (lms)
+set -gx PATH $PATH /home/abyssal/.lmstudio/bin

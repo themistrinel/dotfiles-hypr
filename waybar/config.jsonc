@@ -10,9 +10,12 @@
         "clock",
         "hyprland/workspaces"
     ],
-    "modules-center": ["hyprland/window"],
+    "modules-center": [
+        "hyprland/window"
+    ],
     "modules-right": [
         "tray",
+        "custom/cliphist",
         "memory",
         "cpu",
         "network",
@@ -21,23 +24,19 @@
         "pulseaudio",
         "pulseaudio#microphone"
     ],
-
     "hyprland/window": {
         "format": "󰣇 {}"
     },
-    
     "hyprland/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
         "on-click": "activate"
         //"format": "{icon}",
     },
-
     "tray": {
         "icon-size": 13,
         "spacing": 10
     },
-
     "clock": {
         "format": "{:%A    %B-%d-%Y    %I:%M:%S %p}",
         "interval": 1,
@@ -56,16 +55,18 @@
             }
         }
     },
-
     "backlight": {
         "device": "intel_backlight",
         "format": "{icon} {percent}%",
-        "format-icons": ["󰃞", "󰃟", "󰃠"],
+        "format-icons": [
+            "󰃞",
+            "󰃟",
+            "󰃠"
+        ],
         "on-scroll-up": "brightnessctl set 1%+",
         "on-scroll-down": "brightnessctl set 1%-",
         "min-length": 6
     },
-
     "battery": {
         "states": {
             "good": 95,
@@ -76,14 +77,25 @@
         "format-charging": " {capacity}%",
         "format-plugged": " {capacity}%",
         "format-alt": "{time} {icon}",
-        "format-icons": ["󰂃", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+        "format-icons": [
+            "󰂃",
+            "󰁺",
+            "󰁻",
+            "󰁼",
+            "󰁽",
+            "󰁾",
+            "󰁿",
+            "󰂀",
+            "󰂁",
+            "󰂂",
+            "󰁹"
+        ]
     },
-
     "pulseaudio": {
         "format": "{icon}  {volume}%",
         "tooltip": false,
         "format-muted": "  Muted",
-        "on-click": "pamixer -t",
+        "on-click": "pavucontrol",
         "on-scroll-up": "pamixer -i 1",
         "on-scroll-down": "pamixer -d 1",
         "scroll-step": 5,
@@ -94,10 +106,14 @@
             "phone": "",
             "portable": "",
             "car": "",
-            "default": ["","", "", ""]
+            "default": [
+                "",
+                "",
+                "",
+                ""
+            ]
         }
     },
-
     "pulseaudio#microphone": {
         "format": "{format_source}",
         "format-source": " {volume}%",
@@ -107,7 +123,6 @@
         "on-scroll-down": "pamixer --default-source -d 5",
         "scroll-step": 5
     },
-
     "memory": {
         "states": {
             "c": 90, // critical
@@ -124,14 +139,21 @@
         "tooltip": true,
         "tooltip-format": "󰾆 {percentage}%\n {used:0.1f}GB/{total:0.1f}GB"
     },
-
     "cpu": {
         "interval": 10,
         "format": "󰍛 {usage}%",
         "format-alt": "{icon0}{icon1}{icon2}{icon3}",
-        "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+        "format-icons": [
+            "▁",
+            "▂",
+            "▃",
+            "▄",
+            "▅",
+            "▆",
+            "▇",
+            "█"
+        ]
     },
-
     "network": {
         "tooltip": true,
         "format-wifi": "  {essid}",
@@ -142,5 +164,11 @@
         "tooltip-format-disconnected": "Disconnected",
         "format-alt": "<span foreground='#99ffdd'> {bandwidthDownBytes}</span> <span foreground='#ffcc66'> {bandwidthUpBytes}</span>",
         "interval": 2
+    },
+    "custom/cliphist": {
+        "format": "📋",
+        "on-click": "cliphist list | rofi -dmenu | cliphist decode | wl-copy",
+        "on-click-right": "cliphist wipe",
+        "tooltip": false
     }
 }

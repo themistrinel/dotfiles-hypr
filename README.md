@@ -1,80 +1,96 @@
 # xyz dotfiles
 
-Configurações pessoais para Arch Linux com Hyprland, Inclui setups para terminal, editor, waybar, notificações e mais. 
-## >_ Terminal
+Personal configurations for Arch Linux with Hyprland. Includes setups for terminal, editor, waybar, notifications, and more.
 
+## >_ Terminal
 ![Terminal](images/screenshot.png)
+
 ## Desktop
 ![Desktop](images/screenshot2.png)
+
 ## Rofi
 ![Rofi](images/screenshot3.png)
+
 ## Nvim
 ![Nvim](images/screenshot4.png)
 
-#### obs: nem tudo foi eu quem criou, a maioria das coisas como a waybar foram criadas pelos usuarios do reddit [unixporn](https://www.reddit.com/r/unixporn/)
+#### Note: Most of these configurations (like waybar) were inspired by or adapted from the [unixporn](https://www.reddit.com/r/unixporn/) community on Reddit.
 
-## 📦 Dependências
+## 📦 Dependencies
 
-Antes de usar, instale os seguintes pacotes:
+Before installing, ensure you have the following packages:
 
-### 🖥️ Ambiente gráfico (Wayland)
+### 🖥️ Desktop Environment (Wayland)
 - [Hyprland](https://github.com/hyprwm/Hyprland)
 - [Waybar](https://github.com/Alexays/Waybar)
-- `wl-clipboard` `waypaper` `grim` `slurp` `hyprpaper`
+- `wl-clipboard`, `waypaper`, `grim`, `slurp`, `hyprpaper`
 
-### 🧰 Utilitários
+### 🧰 Utilities
 - `kitty` (terminal)
+- `wezterm` (alternative terminal)
 - `fish` (shell)
 - `neovim` (editor)
-- `rofi` (menu de apps)
-- `dunst` (notificações)
-- `fastfetch` (splash info)
-- `pavucontrol` (controle de mídia)
-- `mpd` + `ncmpcpp` (player de música)
-- `btop` ou `htop` (monitor do sistema)
-- `grim` e `slurp` (print)
-- `hyprpaper`,`swww` e `waypaper` (ferramenta para wallpaper)
+- `rofi-wayland` (launcher)
+- `dunst` (notifications)
+- `fastfetch` (system info)
+- `pavucontrol` (audio control)
+- `btop` (system monitor)
+- `wallust` (color scheme generator)
 
-### 🎨 Aparência
+### 🎨 Appearance
 - [JetBrains Mono Nerd Font](https://www.nerdfonts.com/font-downloads)
 - `papirus-icon-theme`
-- `qt5ct` `qt6ct` (opcional, para temas Qt)
+- `qt5ct`, `qt6ct` (optional, for Qt themes)
 
-### 📁 Gerenciador de arquivos (opcional)
-- `dolphin`
+## 🚀 Installation
 
-## 🚀 Instalação
+1.  Clone the repository (use --recursive to get the Nvim submodule):
+    ```bash
+    git clone --recursive https://github.com/themistrinel/dotfiles-hypr.git ~/.dotfiles
+    cd ~/.dotfiles
+    ```
 
-1. Clone os dotfiles:
-   ```bash
-   git clone https://github.com/naoeoxyz/dotfiles ~/.dotfiles
+2.  Run the installation script:
+    ```bash
+    chmod +x install.sh
+    ./install.sh
+    ```
+    *The script will install dependencies, initialize submodules (like Nvim), and create symbolic links for the configuration folders in `~/.config`.*
 
-2. Crie links simbólicos (ou copie) para os diretórios de configuração:
+## ⌨️ Keybindings
 
-   ```bash
-   ln -s ~/.dotfiles/hypr ~/.config/hypr
-   ln -s ~/.dotfiles/waybar ~/.config/waybar
-   ln -s ~/.dotfiles/kitty ~/.config/kitty
-   ln -s ~/.dotfiles/fish ~/.config/fish
-   ln -s ~/.dotfiles/nvim ~/.config/nvim
-   ln -s ~/.dotfiles/rofi ~/.config/rofi
-   ln -s ~/.dotfiles/dunst ~/.config/dunst
-3. Torne o Fish seu shell padrão (opcional):
-   ```bash
-   chsh -s /usr/bin/fish
-
-## Atalhos de Teclado (Keybindings)
-| Atalho                  | Ação                              |
+### 🪟 Window Management
+| Keybinding              | Action                            |
 | ----------------------- | --------------------------------- |
-| `Super + T`             | Abrir terminal (Kitty)            |
-| `Super + Q`             | Fechar janela                     |
-| `Super + A`             | Abrir launcher (Rofi)             |
-| `Super + W`             | Alternar layout (split/floating)  |
-| `Super + Esc`           | Mostrar/ocultar Waybar            |
-| `Super + P`             | Captura de tela (grim + slurp)    |
-| `Super + 1-9`           | Trocar de workspace               |
-| `Super + Shift + 1-9`   | Mover janela para outro workspace |
-| `Super + Shift + Setas` | Mover janela na direção escolhida |
+| `Super + Q`             | Close active window               |
+| `Super + W`             | Toggle floating                   |
+| `Super + J`             | Toggle split (dwindle)            |
+| `Super + Shift + Arrows` | Move window                       |
+| `Super + M`             | Exit Hyprland                     |
 
+### 🚀 Applications
+| Keybinding              | Action                            |
+| ----------------------- | --------------------------------- |
+| `Super + T`             | Open Terminal (Kitty/WezTerm)     |
+| `Super + Enter`         | Open Terminal                     |
+| `Super + E`             | Open File Manager (Thunar)        |
+| `Super + Space`         | Open Launcher (Rofi)              |
+| `Super + B`             | Open Browser                      |
+| `Super + C`             | Open Code Editor (VS Code)        |
 
+### ⚙️ System & Tools
+| Keybinding              | Action                            |
+| ----------------------- | --------------------------------- |
+| `Super + Ctrl + W`      | Wallpaper Selector (Waypaper)     |
+| `Super + Shift + R`     | **Reload Configurations**          |
+| `Super + Esc`           | Restart Waybar                    |
+| `Super + Shift + S`     | Screenshot                        |
 
+### 🖥️ Workspaces
+| Keybinding              | Action                            |
+| ----------------------- | --------------------------------- |
+| `Super + 1-0`           | Switch workspace                  |
+| `Super + Shift + 1-0`   | Move window to workspace           |
+| `Super + Mouse Scroll`  | Navigate workspaces               |
+| `Super + S`             | Toggle Special Workspace          |
+| `Super + Shift + S`     | Move to Special Workspace         |
