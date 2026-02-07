@@ -36,6 +36,8 @@ Before installing, ensure you have the following packages:
 - `pavucontrol` (audio control)
 - `btop` (system monitor)
 - `wallust` (color scheme generator)
+- `ffmpeg` (for video frame extraction)
+- `mpvpaper` (for video wallpapers)
 
 ### 🎨 Appearance
 - [JetBrains Mono Nerd Font](https://www.nerdfonts.com/font-downloads)

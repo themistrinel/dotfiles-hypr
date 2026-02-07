@@ -64,12 +64,12 @@ PACMAN_DEPS=(
     "ttf-jetbrains-mono-nerd" "otf-font-awesome" "papirus-icon-theme"
     "brightnessctl" "playerctl" "starship" "zoxide" "direnv" "eza" "lazygit" "zsh"
     "thunar" "thunar-archive-plugin" "thunar-volman" "tumbler" "imv"
-    "gvfs" "gvfs-smb" "udiskie" "xdg-utils" "polkit-gnome"
+    "gvfs" "gvfs-smb" "udiskie" "xdg-utils" "polkit-gnome" "ffmpeg"
 )
 
 AUR_DEPS=(
     "cliphist" "spotify" "discord" "waypaper" "swaylock-effects-git" "wlogout" "wallust"
-    "adw-gtk-theme" "qt5ct-kde" "qt6ct-kde"
+    "adw-gtk-theme" "qt5ct-kde" "qt6ct-kde" "mpvpaper"
 )
 
 # --- Start Installation ---
@@ -159,6 +159,9 @@ for folder in "${FOLDERS[@]}"; do
         print_error "Source folder $folder not found in dotfiles!"
     fi
 done
+# Make scripts executable
+print_status "Making scripts executable..."
+find "$DOTFILES_DIR" -type f -name "*.sh" -exec chmod +x {} +
 
 # 7. GPU Driver Installation
 print_status "Detecting GPU for driver installation..."
