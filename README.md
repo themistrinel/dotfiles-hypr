@@ -72,7 +72,6 @@ Before installing, ensure you have the following packages:
 | Keybinding              | Action                            |
 | ----------------------- | --------------------------------- |
 | `Super + Return/Enter`  | Open Terminal (Kitty)             |
-| `Super + T`             | Open Terminal (Kitty)             |
 | `Super + E`             | Open File Manager (Thunar)        |
 | `Super + Space`         | Open Launcher (Rofi)              |
 | `Super + B`             | Open Browser (Zen)                |
