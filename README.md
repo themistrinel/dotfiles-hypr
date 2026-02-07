@@ -71,11 +71,11 @@ Before installing, ensure you have the following packages:
 ### 🚀 Applications
 | Keybinding              | Action                            |
 | ----------------------- | --------------------------------- |
-| `Super + T`             | Open Terminal (Kitty/WezTerm)     |
-| `Super + Enter`         | Open Terminal                     |
+| `Super + Return/Enter`  | Open Terminal (Kitty)             |
+| `Super + T`             | Open Terminal (Kitty)             |
 | `Super + E`             | Open File Manager (Thunar)        |
 | `Super + Space`         | Open Launcher (Rofi)              |
-| `Super + B`             | Open Browser                      |
+| `Super + B`             | Open Browser (Zen)                |
 | `Super + C`             | Open Code Editor (VS Code)        |
 
 ### ⚙️ System & Tools
