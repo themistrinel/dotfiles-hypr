@@ -1,3 +1,6 @@
 [submodule "nvim"]
 	path = nvim
 	url = https://github.com/themistrinel/nvim
+[submodule "rofi-themes"]
+	path = rofi-themes
+	url = https://github.com/adi1090x/rofi.git
