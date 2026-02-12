@@ -155,15 +155,14 @@
         ]
     },
     "network": {
-        "tooltip": true,
-        "format-wifi": "  {essid}",
-        "format-ethernet": "󰈀 ",
-        "tooltip-format": "Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({signalStrength}%)</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>\nIP: <b>{ipaddr}/{cidr}</b>\nGateway: <b>{gwaddr}</b>\nNetmask: <b>{netmask}</b>",
+        "interval": 1,
+        "format-wifi": "   <span color='#91d7e3'>󰇚</span> {bandwidthDownBytes}  <span color='#eed49f'>󰕒</span> {bandwidthUpBytes}",
+        "format-ethernet": "󰈀   <span color='#91d7e3'>󰇚</span> {bandwidthDownBytes}  <span color='#eed49f'>󰕒</span> {bandwidthUpBytes}",
         "format-linked": "󰈀 {ifname} (No IP)",
-        "format-disconnected": "󰖪 ",
-        "tooltip-format-disconnected": "Disconnected",
-        "format-alt": "<span foreground='#99ffdd'> {bandwidthDownBytes}</span> <span foreground='#ffcc66'> {bandwidthUpBytes}</span>",
-        "interval": 2
+        "format-disconnected": "󰖪 Disconnected",
+        "tooltip-format": "Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({signalStrength}%)</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>\nIP: <b>{ipaddr}/{cidr}</b>\nGateway: <b>{gwaddr}</b>\nNetmask: <b>{netmask}</b>",
+        "format-alt": "󰇚 {bandwidthDownBytes} 󰕒 {bandwidthUpBytes}",
+        "min-length": 24
     },
     "custom/cliphist": {
         "format": "📋",

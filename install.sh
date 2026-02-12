@@ -64,12 +64,13 @@ PACMAN_DEPS=(
     "ttf-jetbrains-mono-nerd" "otf-font-awesome" "papirus-icon-theme"
     "brightnessctl" "playerctl" "starship" "zoxide" "direnv" "eza" "lazygit" "zsh"
     "thunar" "thunar-archive-plugin" "thunar-volman" "tumbler" "imv"
-    "gvfs" "gvfs-smb" "udiskie" "xdg-utils" "polkit-gnome" "ffmpeg"
+    "gvfs" "gvfs-smb" "udiskie" "xdg-utils" "polkit-gnome" "ffmpeg" "nwg-look"
 )
 
 AUR_DEPS=(
     "cliphist" "spotify" "discord" "waypaper" "swaylock-effects-git" "wlogout" "wallust"
     "adw-gtk-theme" "qt5ct-kde" "qt6ct-kde" "mpvpaper"
+    "zen-browser-bin" "catppuccin-gtk-theme-mocha" "kora-icon-theme"
 )
 
 # --- Start Installation ---
@@ -159,9 +160,32 @@ for folder in "${FOLDERS[@]}"; do
         print_error "Source folder $folder not found in dotfiles!"
     fi
 done
+
+# --- Install Fonts ---
+print_status "Installing fonts..."
+FONT_DIR="$HOME/.local/share/fonts"
+mkdir -p "$FONT_DIR"
+if [ -d "$DOTFILES_DIR/fonts" ]; then
+    cp -rf "$DOTFILES_DIR/fonts"/* "$FONT_DIR/"
+    fc-cache -f
+    print_success "Fonts installed and cache updated."
+else
+    print_warning "No fonts folder found in dotfiles."
+fi
 # Make scripts executable
 print_status "Making scripts executable..."
 find "$DOTFILES_DIR" -type f -name "*.sh" -exec chmod +x {} +
+
+# --- Install Rofi Themes ---
+print_status "Installing Rofi themes from adi1090x..."
+if [ -f "$DOTFILES_DIR/rofi/install.sh" ]; then
+    cd "$DOTFILES_DIR/rofi" || exit
+    ./install.sh
+    cd "$DOTFILES_DIR" || exit
+    print_success "Rofi themes installed."
+else
+    print_warning "Rofi install script not found."
+fi
 
 # 7. GPU Driver Installation
 print_status "Detecting GPU for driver installation..."

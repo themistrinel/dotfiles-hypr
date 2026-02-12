@@ -1,4 +1,4 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
 SETUVAR __fish_initialized:4300
-SETUVAR fish_user_paths:/home/abyssal/\x2elocal/bin
+SETUVAR fish_user_paths:/home/abyssal/\x2enpm\x2dglobal/bin\x1e/usr/local/bin\x1e/home/abyssal/\x2elocal/bin

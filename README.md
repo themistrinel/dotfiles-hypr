@@ -31,6 +31,7 @@ Before installing, ensure you have the following packages:
 - `fish` (shell)
 - `neovim` (editor)
 - `rofi-wayland` (launcher)
+- `cliphist` (clipboard manager)
 - `dunst` (notifications)
 - `fastfetch` (system info)
 - `pavucontrol` (audio control)
@@ -59,6 +60,32 @@ Before installing, ensure you have the following packages:
     ```
     *The script will install dependencies, initialize submodules (like Nvim), and create symbolic links for the configuration folders in `~/.config`.*
 
+## 🎨 Rofi Configuration
+
+This setup includes the beautiful [adi1090x/rofi](https://github.com/adi1090x/rofi) themes collection with:
+
+- **Launchers**: 7 different types with multiple styles each
+- **Applets**: Volume, brightness, network, screenshot, MPD, battery, and more
+- **Powermenus**: Multiple power menu styles
+- **Clipboard Manager**: Full clipboard history with Wayland support
+
+The Rofi themes are automatically installed by the main install script. For manual installation or customization, see [rofi/README.md](rofi/README.md).
+
+### Quick Customization
+
+Change launcher style:
+```bash
+# Edit ~/.config/rofi/launchers/type-1/launcher.sh
+theme='style-1'  # Change to style-2, style-3, etc.
+```
+
+Change color scheme:
+```bash
+# Edit ~/.config/rofi/launchers/type-1/shared/colors.rasi
+@import "~/.config/rofi/colors/onedark.rasi"
+# Available: adapta, arc, catppuccin, dracula, gruvbox, nord, etc.
+```
+
 ## ⌨️ Keybindings
 
 ### 🪟 Window Management
@@ -75,13 +102,27 @@ Before installing, ensure you have the following packages:
 | ----------------------- | --------------------------------- |
 | `Super + Return/Enter`  | Open Terminal (Kitty)             |
 | `Super + E`             | Open File Manager (Thunar)        |
-| `Super + Space`         | Open Launcher (Rofi)              |
+| `Super + Space`         | Open Launcher (Rofi Type 1)       |
+| `Super + D`             | Open Launcher (Rofi Type 2)       |
+| `Super + Tab`           | Window Switcher (Rofi)            |
+| `Super + V`             | Clipboard Manager (Rofi)          |
+| `Super + P`             | Power Menu (Rofi)                 |
 | `Super + B`             | Open Browser (Zen)                |
 | `Super + C`             | Open Code Editor (VS Code)        |
+
+### 🎨 Rofi Applets
+| Keybinding              | Action                            |
+| ----------------------- | --------------------------------- |
+| `Super + Shift + V`     | Volume Control                    |
+| `Super + Shift + B`     | Brightness Control                |
+| `Super + Shift + N`     | Network Manager                   |
+| `Super + Shift + P`     | Screenshot Tool                   |
 
 ### ⚙️ System & Tools
 | Keybinding              | Action                            |
 | ----------------------- | --------------------------------- |
+| `Super + T`             | Rofi Color Scheme Selector        |
+| `Super + Shift + T`     | Rofi Launcher Type Selector       |
 | `Super + Ctrl + W`      | Wallpaper Selector (Waypaper)     |
 | `Super + Shift + R`     | **Reload Configurations**          |
 | `Super + Esc`           | Restart Waybar                    |

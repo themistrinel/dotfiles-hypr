@@ -38,7 +38,10 @@ if status is-interactive
     abbr ag 'antigravity'
 
     # Custom colours
-    # cat ~/.local/state/caelestia/sequences.txt 2> /dev/null
+    set -g fish_color_autosuggestion 'brblack'
+    set -g fish_color_command 'magenta'
+    set -g fish_color_param 'blue'
+    set -g fish_color_normal 'normal'
 
     # For jumping between prompts in foot terminal
     function mark_prompt_start --on-event fish_prompt
