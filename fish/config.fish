@@ -12,9 +12,13 @@ if status is-interactive
     # Starship custom prompt
     starship init fish | source
 
+    # Rust/Cargo
+    test -f ~/.cargo/env.fish && source ~/.cargo/env.fish
+
     # Direnv + Zoxide
     command -v direnv &> /dev/null && direnv hook fish | source
     command -v zoxide &> /dev/null && zoxide init fish | source
+    command -v zoxide &> /dev/null && zoxide init fish --cmd cd | source
 
     # Better ls
     alias ls='eza --icons --group-directories-first -1'
@@ -60,6 +64,9 @@ end
 
 # Added by LM Studio CLI tool (lms)
 set -gx PATH $PATH /home/abyssal/.lmstudio/bin
+
+# OpenRouter
+set -gx OPENROUTER_API_KEY "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"
 
 # pnpm
 set -gx PNPM_HOME "/home/abyssal/.local/share/pnpm"
