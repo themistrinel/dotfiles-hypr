@@ -89,6 +89,13 @@ cp -rf "$DOTFILES_DIR/fonts/"* "$FONT_DIR/"
 fc-cache -f
 print_success "Fontes instaladas."
 
+# --- Cursores ---
+print_status "Instalando cursores..."
+ICON_DIR="$HOME/.icons"
+mkdir -p "$ICON_DIR"
+cp -rf "$DOTFILES_DIR/cursors/"* "$ICON_DIR/"
+print_success "Cursores instalados."
+
 # --- Scripts executáveis ---
 find "$DOTFILES_DIR" -type f -name "*.sh" -exec chmod +x {} +
 
