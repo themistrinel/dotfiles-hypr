@@ -9,34 +9,34 @@
 
 window#waybar {
     background: rgba(21, 18, 27, 0);
-    color: #dadfe4;
+    color: #cdd6f4;
 }
 
 #workspaces button {
     padding: 5px;
-    color: #989c9f;
+    color: #555869;
     margin-right: 5px;
 }
 
 #workspaces button.active {
-    color: #dadfe4;
+    color: #a6adc8;
 }
 
 #workspaces button.focused {
-    color: #dadfe4;
-    background: #1660c7;
+    color: #a6adc8;
+    background: #eba0ac;
     border-radius: 10px;
 }
 
 #workspaces button.urgent {
-    color: #010101;
-    background: #1863df;
+    color: #11111b;
+    background: #a6e3a1;
     border-radius: 10px;
 }
 
 #workspaces button:hover {
-    background: #dadfe4;
-    color: #010101;
+    background: #cdd6f4;
+    color: #11111b;
     border-radius: 10px;
 }
 
@@ -50,7 +50,7 @@ window#waybar {
 #workspaces,
 #tray,
 #backlight {
-    background: #010101;
+    background: #1e1e2e;
     padding: 0px 10px;
     margin: 3px 0px;
     margin-top: 5px;
@@ -66,7 +66,7 @@ window#waybar {
 }
 
 #workspaces {
-    background: #010101;
+    background: #1e1e2e;
     border-radius: 10px;
     margin-left: 10px;
     padding-right: 0px;
@@ -89,25 +89,25 @@ window#waybar {
 }
 
 #clock {
-    color: #dadfe4;
+    color: #a6adc8;
     border-radius: 10px 10px 10px 10px;
     margin-left: 5px;
     border-right: 0px;
 }
 
 #network {
-    color: #dadfe4;
+    color: #a6adc8;
     border-radius: 10px 0px 0px 10px;
 }
 
 #pulseaudio {
-    color: #dadfe4;
+    color: #a6adc8;
     border-left: 0px;
     border-right: 0px;
 }
 
 #pulseaudio.microphone {
-    color: #dadfe4;
+    color: #a6adc8;
     border-radius: 0px 10px 10px 0px;
     border-left: 0px;
     border-right: 0px;
@@ -115,14 +115,14 @@ window#waybar {
 }
 
 #battery {
-    color: #dadfe4;
+    color: #a6adc8;
     border-radius: 0px 10px 10px 0px;
     margin-right: 10px;
 }
 
 #custom-recording {
-    color: #1660c7;
-    background: #010101;
+    color: #ff0000;
+    background: #1e1e2e;
     border-radius: 10px;
     padding: 0 10px;
     margin: 3px 0px;

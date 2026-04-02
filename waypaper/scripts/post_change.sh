@@ -51,9 +51,11 @@ hyprctl reload
 killall -SIGUSR1 kitty 2>/dev/null
 killall -SIGUSR1 wezterm 2>/dev/null
 
-# Restart waybar to apply new colors
-killall waybar 2>/dev/null
-waybar &
+# Update Waybar theme (respects current fixed/pywal mode)
+if [ -f "$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" ]; then
+    current_mode=$("$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" current)
+    "$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" "$current_mode"
+fi
 
 # Send notification (optional)
 # notify-send "Wallpaper Updated" "Colors generated from $(basename "$COLOR_SOURCE")"

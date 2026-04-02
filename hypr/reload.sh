@@ -12,6 +12,11 @@ waybar &
 killall dunst
 dunst &
 
+# Reload foot (if running)
+if pgrep -x "foot" > /dev/null; then
+    killall -USR1 foot
+fi
+
 # Reload Hyprpaper (if used)
 if pgrep -x "hyprpaper" > /dev/null; then
     killall hyprpaper
