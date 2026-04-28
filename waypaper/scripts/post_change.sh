@@ -43,7 +43,15 @@ fi
 
 # Run pywal to generate colors (skip GTK theming)
 if command -v wal >/dev/null 2>&1; then
-    wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.8
+    PRESET=$(cat "$HOME/.cache/wal/.preset" 2>/dev/null || echo "dark")
+    case "$PRESET" in
+        soft)   wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.4 ;;
+        light)  wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.6 -l ;;
+        earthy) wal -i "$COLOR_SOURCE" -n -t -e --backend haishoku ;;
+        muted)  wal -i "$COLOR_SOURCE" -n -t -e --backend colorthief ;;
+        colorz) wal -i "$COLOR_SOURCE" -n -t -e --backend colorz ;;
+        *)      wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.8 ;;  # dark (default)
+    esac
 fi
 
 # Reload configurations
