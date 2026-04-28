@@ -17,6 +17,7 @@ if pgrep -x "waybar" > /dev/null; then
 else
     # Waybar is not running, start it and disable zen mode
     waybar &
+    ~/.config/hypr/scripts/gtk.sh
     
     # Restore borders and gaps
     hyprctl keyword general:border_size 2

@@ -32,10 +32,28 @@ gsettings set "$GNOME_SCHEMA" font-name "$FONT_NAME"
 gsettings set "$GNOME_SCHEMA" cursor-size "$CURSOR_SIZE"
 
 # Also set color scheme preference (prefer-dark if theme suggests it)
-if [[ "$GTK_THEME" == *"dark"* ]] || [[ "$GTK_THEME" == *"Dark"* ]] || [[ "$GTK_THEME" == *"mocha"* ]]; then
-    gsettings set "$GNOME_SCHEMA" color-scheme "prefer-dark"
+# Set color-scheme based on schedule (same logic as theme-auto.sh)
+SCHEDULE="$HOME/.dotfiles/hypr/scripts/theme-schedule.conf"
+if [ -f "$SCHEDULE" ]; then
+    source "$SCHEDULE"
+    to_min() { IFS=: read h m <<< "$1"; echo $(( 10#$h * 60 + 10#$m )); }
+    now=$(to_min "$(date +%H:%M)")
+    light=$(to_min "$LIGHT_START")
+    dark=$(to_min "$DARK_START")
+    if (( now >= light && now < dark )); then
+        gsettings set "$GNOME_SCHEMA" color-scheme "prefer-light"
+    else
+        gsettings set "$GNOME_SCHEMA" color-scheme "prefer-dark"
+    fi
 else
-    gsettings set "$GNOME_SCHEMA" color-scheme "default"
+    # Fallback: infer from theme name
+    if [[ "$GTK_THEME" == *"dark"* ]] || [[ "$GTK_THEME" == *"Dark"* ]] || [[ "$GTK_THEME" == *"mocha"* ]]; then
+        gsettings set "$GNOME_SCHEMA" color-scheme "prefer-dark"
+    elif [[ "$GTK_THEME" == *"light"* ]] || [[ "$GTK_THEME" == *"Light"* ]]; then
+        gsettings set "$GNOME_SCHEMA" color-scheme "prefer-light"
+    else
+        gsettings set "$GNOME_SCHEMA" color-scheme "default"
+    fi
 fi
 
 # Sync GTK-4.0 settings with GTK-3.0
