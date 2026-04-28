@@ -9,38 +9,38 @@
 
 window#waybar {
     background: rgba(21, 18, 27, 0);
-    color: #dadfe4;
+    color: #8F7E70;
 }
 
 #workspaces button {
     padding: 5px;
-    color: #989c9f;
+    color: #8b8e91;
     margin-right: 5px;
 }
 
 #workspaces button.active {
-    color: #dadfe4;
+    color: #8F7E70;
 }
 
 #workspaces button.focused {
-    color: #dadfe4;
-    background: #1660c7;
+    color: #8F7E70;
+    background: #e69eb6;
     border-radius: 10px;
 }
 
 #workspaces button.urgent {
-    color: #010101;
-    background: #1863df;
+    color: #fbfcfd;
+    background: #a5c0e8;
     border-radius: 10px;
 }
 
 #workspaces button:hover {
-    background: #dadfe4;
-    color: #010101;
+    background: #8F7E70;
+    color: #fbfcfd;
     border-radius: 10px;
 }
 
-#window,
+#custom-window,
 #clock,
 #battery,
 #pulseaudio,
@@ -50,7 +50,7 @@ window#waybar {
 #workspaces,
 #tray,
 #backlight {
-    background: #010101;
+    background: #fbfcfd;
     padding: 0px 10px;
     margin: 3px 0px;
     margin-top: 5px;
@@ -66,7 +66,7 @@ window#waybar {
 }
 
 #workspaces {
-    background: #010101;
+    background: #fbfcfd;
     border-radius: 10px;
     margin-left: 10px;
     padding-right: 0px;
@@ -82,32 +82,46 @@ window#waybar {
     border-radius: 10px 0px 0px 10px;
 }
 
-#window {
+#custom-window {
+    background: #fbfcfd;
     border-radius: 10px;
     margin-left: 60px;
     margin-right: 60px;
 }
 
 #clock {
-    color: #dadfe4;
+    color: #8F7E70;
     border-radius: 10px 10px 10px 10px;
     margin-left: 5px;
     border-right: 0px;
 }
 
+#custom-moon {
+    color: #8F7E70;
+    background: #fbfcfd;
+    border-radius: 10px;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-left: 5px;
+    font-size: 16px;
+    font-family: "Noto Color Emoji", "Segoe UI Emoji", monospace;
+    min-width: 24px;
+}
+
 #network {
-    color: #dadfe4;
+    color: #8F7E70;
     border-radius: 10px 0px 0px 10px;
 }
 
 #pulseaudio {
-    color: #dadfe4;
+    color: #8F7E70;
     border-left: 0px;
     border-right: 0px;
 }
 
 #pulseaudio.microphone {
-    color: #dadfe4;
+    color: #8F7E70;
     border-radius: 0px 10px 10px 0px;
     border-left: 0px;
     border-right: 0px;
@@ -115,14 +129,14 @@ window#waybar {
 }
 
 #battery {
-    color: #dadfe4;
+    color: #8F7E70;
     border-radius: 0px 10px 10px 0px;
     margin-right: 10px;
 }
 
 #custom-recording {
-    color: #1660c7;
-    background: #010101;
+    color: #e69eb6;
+    background: #fbfcfd;
     border-radius: 10px;
     padding: 0 10px;
     margin: 3px 0px;

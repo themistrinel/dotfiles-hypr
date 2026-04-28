@@ -40,7 +40,7 @@ window#waybar {{
     border-radius: 10px;
 }}
 
-#window,
+#custom-window,
 #clock,
 #battery,
 #pulseaudio,
@@ -82,7 +82,8 @@ window#waybar {{
     border-radius: 10px 0px 0px 10px;
 }}
 
-#window {{
+#custom-window {{
+    background: {color0};
     border-radius: 10px;
     margin-left: 60px;
     margin-right: 60px;
