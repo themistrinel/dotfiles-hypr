@@ -96,19 +96,6 @@ window#waybar {
     border-right: 0px;
 }
 
-#custom-moon {
-    color: #8F7E70;
-    background: #fbfcfd;
-    border-radius: 10px;
-    padding: 0px 10px;
-    margin: 3px 0px;
-    margin-top: 5px;
-    margin-left: 5px;
-    font-size: 16px;
-    font-family: "Noto Color Emoji", "Segoe UI Emoji", monospace;
-    min-width: 24px;
-}
-
 #network {
     color: #8F7E70;
     border-radius: 10px 0px 0px 10px;
@@ -143,4 +130,14 @@ window#waybar {
     margin-top: 5px;
     margin-right: 5px;
     font-size: 14px;
+}
+
+#custom-moon {
+    color: #8F7E70;
+    background: #fbfcfd;
+    border-radius: 10px;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-left: 5px;
 }

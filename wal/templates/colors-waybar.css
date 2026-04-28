@@ -131,3 +131,13 @@ window#waybar {{
     margin-right: 5px;
     font-size: 14px;
 }}
+
+#custom-moon {{
+    color: {color7};
+    background: {background};
+    border-radius: 10px;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-left: 5px;
+}}

@@ -29,4 +29,4 @@ else:              icon, name = "🌑", "Lua Nova"
 print(json.dumps({
     "text": icon,
     "tooltip": f"{name} ({phase:.0f}% iluminada)"
-}))
+}, ensure_ascii=False))
