@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pomodoro</title>
+<style>
+  :root {
+    --bg:      #1a1a1a;
+    --fg:      #e0e0e0;
+    --accent:  #c14f30;
+    --surface: #242424;
+    --muted:   #666;
+    --radius:  8px;
+    --font:    'JetBrains Mono', 'Fira Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: var(--font); font-size: 14px;
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+
+  /* ── header ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid var(--surface);
+  }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  header h1 { font-size: 13px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+  #status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted); flex-shrink: 0; transition: background 0.3s;
+  }
+  #status-dot.work   { background: var(--accent); animation: pulse 2s infinite; }
+  #status-dot.break  { background: #4a9eff; animation: pulse 3s infinite; }
+  #status-dot.paused { background: #f0a500; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
+  .header-right { display: flex; align-items: center; gap: 6px; }
+  #zen-btn, #settings-btn {
+    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 2px;
+  }
+  #zen-btn:hover, #settings-btn:hover { color: var(--fg); }
+
+  /* ── timer panel ── */
+  #timer-panel {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 16px 12px; gap: 6px;
+  }
+  #session-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  #task-name {
+    font-size: 13px; color: var(--fg); max-width: 280px; text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ── SVG ring ── */
+  #timer-ring-wrap { position: relative; width: 160px; height: 160px; }
+  #timer-ring-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+  #ring-bg   { fill: none; stroke: var(--surface); stroke-width: 6; }
+  #ring-fill { fill: none; stroke: var(--accent); stroke-width: 6;
+               stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.5s; }
+  #timer-display {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 38px; font-weight: bold; color: var(--accent); letter-spacing: 3px;
+    transition: color 0.5s;
+  }
+  #timer-panel.phase-break  #ring-fill,
+  #timer-panel.phase-break  #timer-display { stroke: #4a9eff; color: #4a9eff; }
+  #timer-panel.phase-paused #ring-fill,
+  #timer-panel.phase-paused #timer-display { stroke: #f0a500; color: #f0a500; }
+
+  /* flash animation on phase change */
+  @keyframes flash-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+  #timer-ring-wrap.flash { animation: flash-in 0.35s ease-out; }
+
+  #session-dots { display: flex; gap: 6px; margin-top: 2px; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--surface); border: 1.5px solid var(--muted);
+    transition: background 0.3s, border-color 0.3s, transform 0.2s;
+  }
+  .dot.done { background: var(--accent); border-color: var(--accent); }
+  .dot.active { border-color: var(--fg); transform: scale(1.3); }
+
+  /* ── controls ── */
+  #controls { display: flex; gap: 8px; justify-content: center; padding: 6px 0 12px; }
+  .ctrl-btn {
+    background: var(--surface); border: 1px solid #333; color: var(--fg);
+    padding: 7px 16px; border-radius: var(--radius); cursor: pointer;
+    font-family: var(--font); font-size: 12px; letter-spacing: 1px;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .ctrl-btn:hover { background: #2e2e2e; border-color: var(--accent); }
+  .ctrl-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ctrl-btn.primary:hover { filter: brightness(1.1); }
+  .ctrl-btn:disabled { opacity: 0.35; cursor: default; }
+  .ctrl-btn:disabled:hover { background: var(--surface); border-color: #333; filter: none; }
+
+  /* ── divider ── */
+  hr { border: none; border-top: 1px solid var(--surface); margin: 0 16px; }
+
+  /* ── preset bar (always visible) ── */
+  #preset-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 16px 4px; flex-wrap: wrap; border-bottom: 1px solid var(--surface);
+  }
+  .preset-chip {
+    border: 1px solid #333; border-radius: var(--radius); padding: 3px 8px;
+    cursor: pointer; font-family: var(--font); font-size: 11px;
+    background: var(--bg); color: var(--fg); display: flex; align-items: center; gap: 4px;
+  }
+  .preset-chip:hover { border-color: var(--accent); }
+  .preset-chip.active-preset { border-color: var(--accent); background: var(--surface); }
+  .preset-chip .del-preset { color: var(--muted); font-size: 10px; margin-left: 2px; }
+  .preset-chip .del-preset:hover { color: var(--accent); }
+  #save-preset-btn {
+    background: none; border: 1px dashed var(--muted); color: var(--muted);
+    padding: 3px 8px; border-radius: var(--radius); cursor: pointer;
+    font-family: var(--font); font-size: 11px;
+  }
+  #save-preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── task section ── */
+  #task-section { flex: 1; overflow-y: auto; padding: 10px 16px; }
+  #task-section::-webkit-scrollbar { width: 4px; }
+  #task-section::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 2px; }
+  #task-section.hidden { display: none; }
+
+  #date-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  #date-header span { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .date-header-right { display: flex; gap: 6px; align-items: center; }
+  #filter-btns { display: flex; gap: 3px; }
+  .filter-btn {
+    background: none; border: 1px solid #333; color: var(--muted);
+    padding: 2px 7px; border-radius: var(--radius); cursor: pointer;
+    font-family: var(--font); font-size: 10px; letter-spacing: 0.5px;
+  }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); }
+  #view-toggle {
+    background: none; border: 1px solid var(--muted); color: var(--muted);
+    padding: 2px 8px; border-radius: var(--radius); cursor: pointer;
+    font-family: var(--font); font-size: 11px; letter-spacing: 1px;
+  }
+  #view-toggle:hover, #view-toggle.active { border-color: var(--accent); color: var(--accent); }
+  #add-task-btn {
+    background: none; border: 1px dashed var(--muted); color: var(--muted);
+    padding: 2px 8px; border-radius: var(--radius); cursor: pointer;
+    font-family: var(--font); font-size: 11px;
+  }
+  #add-task-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── task items ── */
+  .task-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: var(--radius);
+    border: 1px solid transparent; margin-bottom: 5px;
+    cursor: pointer; transition: background 0.1s, border-color 0.1s;
+    user-select: none;
+  }
+  .task-item:hover { background: var(--surface); }
+  .task-item.active { border-color: var(--accent); background: var(--surface); }
+  .task-item.done-task { opacity: 0.45; }
+  .task-item.dragging { opacity: 0.5; border: 1px dashed var(--accent); }
+  .task-item.drag-over { border-top: 2px solid var(--accent); }
+
+  .drag-handle {
+    color: var(--muted); font-size: 12px; cursor: grab; opacity: 0;
+    transition: opacity 0.1s; flex-shrink: 0;
+  }
+  .task-item:hover .drag-handle { opacity: 1; }
+
+  .task-check {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1px solid var(--muted); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; cursor: pointer;
+  }
+  .task-check.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .task-info { flex: 1; min-width: 0; }
+  .task-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+  .task-meta { font-size: 10px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+
+  .tag-badge {
+    font-size: 9px; padding: 1px 5px; border-radius: 3px;
+    letter-spacing: 0.5px; flex-shrink: 0; font-weight: bold;
+  }
+  .pomo-progress { font-size: 10px; color: var(--muted); }
+
+  .task-actions { display: flex; gap: 5px; opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
+  .task-item:hover .task-actions { opacity: 1; }
+  .task-actions button {
+    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 2px;
+  }
+  .task-actions button:hover { color: var(--fg); }
+  .task-actions .finish-btn { color: var(--accent); font-size: 11px; }
+
+  .status-badge {
+    font-size: 9px; padding: 1px 5px; border-radius: 3px;
+    letter-spacing: 0.5px; text-transform: uppercase; flex-shrink: 0;
+  }
+  .status-badge.done   { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+  .status-badge.active { background: color-mix(in srgb, var(--fg) 10%, transparent); color: var(--fg); }
+
+  /* ── weekly view ── */
+  #week-view { display: none; flex-direction: column; gap: 0; overflow-y: auto; flex: 1; padding: 0 16px 12px; }
+  #week-view.open { display: flex; }
+  .week-day { margin-bottom: 10px; }
+  .week-day-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0 4px; border-bottom: 1px solid var(--surface); margin-bottom: 4px;
+  }
+  .week-day-header span { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .week-day-header span.today { color: var(--accent); }
+  .add-day-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-family: var(--font); font-size: 11px; padding: 0; }
+  .add-day-btn:hover { color: var(--accent); }
+  .week-task { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: var(--radius); }
+  .week-task:hover { background: var(--surface); }
+  .week-task span { flex: 1; font-size: 12px; }
+  .week-task .wt-meta { font-size: 10px; color: var(--muted); }
+  .week-task .wt-actions { display: flex; gap: 4px; opacity: 0; }
+  .week-task:hover .wt-actions { opacity: 1; }
+  .wt-actions button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; }
+  .wt-actions button:hover { color: var(--fg); }
+  .recurring-badge { font-size: 9px; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 1px 4px; letter-spacing: 0.5px; }
+
+  /* ── modal ── */
+  #modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+  }
+  #modal-overlay.open { display: flex; }
+  #modal {
+    background: var(--surface); border: 1px solid #333; border-radius: var(--radius);
+    padding: 20px; width: 320px; display: flex; flex-direction: column; gap: 12px;
+  }
+  #modal h2 { font-size: 13px; color: var(--accent); letter-spacing: 1px; }
+  #modal input, #modal select {
+    background: var(--bg); border: 1px solid #444; color: var(--fg);
+    padding: 7px 10px; border-radius: var(--radius); font-family: var(--font); font-size: 13px; width: 100%;
+  }
+  #modal input:focus, #modal select:focus { outline: none; border-color: var(--accent); }
+  #modal label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; }
+  #modal .modal-field { display: flex; flex-direction: column; }
+  .modal-row { display: flex; gap: 8px; }
+  .modal-row .ctrl-btn { flex: 1; }
+  .modal-check-row { display: flex; align-items: center; gap: 8px; }
+  .modal-check-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
+  .modal-check-row label { font-size: 12px; color: var(--muted); cursor: pointer; }
+  #inp-weekday-row { display: none; }
+  #inp-weekday-row.visible { display: flex; flex-direction: column; }
+  .tag-color-row { display: flex; gap: 6px; align-items: flex-end; }
+  .tag-color-row input[type=text] { flex: 1; }
+  .tag-color-row input[type=color] {
+    width: 36px; height: 34px; border: 1px solid #444; border-radius: var(--radius);
+    background: var(--bg); cursor: pointer; padding: 2px;
+  }
+
+  /* ── settings panel ── */
+  #settings-panel {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+  }
+  #settings-panel.open { display: flex; }
+  #settings-box {
+    background: var(--surface); border: 1px solid #333; border-radius: var(--radius);
+    padding: 20px; width: 290px; display: flex; flex-direction: column; gap: 12px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  #settings-box h2 { font-size: 13px; color: var(--accent); letter-spacing: 1px; }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; }
+  .setting-row label { font-size: 12px; color: var(--muted); }
+  .setting-row input[type=number], .setting-row input[type=text] {
+    background: var(--bg); border: 1px solid #444; color: var(--fg);
+    padding: 6px 10px; border-radius: var(--radius); font-family: var(--font);
+    font-size: 13px; width: 80px; text-align: center;
+  }
+  .setting-row input:focus { outline: none; border-color: var(--accent); }
+  .setting-row input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+  .stab-bar { display: flex; gap: 4px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+  .stab {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-family: var(--font); font-size: 11px; letter-spacing: 1px;
+    padding: 4px 10px; border-radius: var(--radius); text-transform: uppercase;
+  }
+  .stab.active { background: var(--accent); color: #fff; }
+  .stab-page { display: none; flex-direction: column; gap: 12px; }
+  .stab-page.active { display: flex; }
+  .slider-row { display: flex; flex-direction: column; gap: 4px; }
+  .slider-row label { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 3px; background: #444; border-radius: 2px; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+  .sound-block { border: 1px solid #333; border-radius: var(--radius); padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .sound-block-header { display: flex; align-items: center; justify-content: space-between; }
+  .sound-block-header span { font-size: 11px; color: var(--fg); letter-spacing: 1px; text-transform: uppercase; }
+  .preview-btn { background: none; border: 1px solid var(--muted); color: var(--muted); padding: 3px 10px; border-radius: var(--radius); cursor: pointer; font-family: var(--font); font-size: 11px; }
+  .preview-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .theme-chip {
+    border: 1px solid #333; border-radius: var(--radius); padding: 8px 10px;
+    cursor: pointer; font-family: var(--font); font-size: 11px;
+    display: flex; align-items: center; gap: 6px; background: var(--bg);
+    color: var(--fg); transition: border-color 0.15s;
+  }
+  .theme-chip:hover { border-color: var(--accent); }
+  .theme-chip.selected { border-color: var(--accent); background: var(--surface); }
+  .theme-chip .swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── zen mode ── */
+  body.zen #task-section,
+  body.zen #week-view,
+  body.zen #preset-bar,
+  body.zen hr { display: none !important; }
+  body.zen #timer-panel { padding-top: 40px; }
+  body.zen #zen-btn { color: var(--accent); }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-left">
+    <div id="status-dot"></div>
+    <h1>🍅 Pomodoro</h1>
+  </div>
+  <div class="header-right">
+    <button id="zen-btn" title="Zen mode (Z)">◎</button>
+    <button id="settings-btn" title="Settings">⚙</button>
+  </div>
+</header>
+
+<div id="timer-panel">
+  <div id="session-label">idle</div>
+  <div id="task-name">—</div>
+  <div id="timer-ring-wrap">
+    <svg width="160" height="160" viewBox="0 0 160 160">
+      <circle id="ring-bg"   cx="80" cy="80" r="70"/>
+      <circle id="ring-fill" cx="80" cy="80" r="70"
+              stroke-dasharray="439.82" stroke-dashoffset="439.82"/>
+    </svg>
+    <div id="timer-display">25:00</div>
+  </div>
+  <div id="session-dots"></div>
+</div>
+
+<div id="controls">
+  <button class="ctrl-btn primary" id="btn-start">▶ Start</button>
+  <button class="ctrl-btn" id="btn-pause" disabled>⏸ Pause</button>
+  <button class="ctrl-btn" id="btn-skip"  disabled title="Skip session (N)">⏭</button>
+  <button class="ctrl-btn" id="btn-reset" disabled title="Reset (R)">↺</button>
+</div>
+
+<div id="preset-bar">
+  <span style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;flex-shrink:0">Presets:</span>
+  <div id="preset-chips"></div>
+  <button id="save-preset-btn">+ Save</button>
+</div>
+
+<div id="task-section">
+  <div id="date-header">
+    <span id="today-label"></span>
+    <div class="date-header-right">
+      <div id="filter-btns">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="pending">Pending</button>
+        <button class="filter-btn" data-filter="done">Done</button>
+      </div>
+      <button id="view-toggle" title="Weekly view">Week</button>
+      <button id="add-task-btn">+ Add</button>
+    </div>
+  </div>
+  <div id="task-list"></div>
+</div>
+
+<div id="week-view"></div>
+
+<!-- Add/Edit modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h2 id="modal-title">New Task</h2>
+    <div class="modal-field">
+      <label>Title</label>
+      <input id="inp-title" type="text" placeholder="Task name…" autocomplete="off">
+    </div>
+    <div class="modal-row">
+      <div class="modal-field" style="flex:1">
+        <label>Time (min)</label>
+        <input id="inp-minutes" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="25" autocomplete="off">
+      </div>
+      <div class="modal-field" style="flex:1">
+        <label>🍅 Pomodoros</label>
+        <input id="inp-pomo" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="auto" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Tag</label>
+      <div class="tag-color-row">
+        <input id="inp-tag" type="text" placeholder="work, study, personal…" autocomplete="off">
+        <input id="inp-tag-color" type="color" value="#4a9eff" title="Tag color">
+      </div>
+    </div>
+    <div class="modal-check-row">
+      <input type="checkbox" id="inp-recurring">
+      <label for="inp-recurring">Repeat every week</label>
+    </div>
+    <div id="inp-weekday-row" class="modal-field">
+      <label>Day of week</label>
+      <select id="inp-weekday">
+        <option value="0">Sunday</option>
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+        <option value="6">Saturday</option>
+      </select>
+    </div>
+    <div id="inp-date-row" class="modal-field">
+      <label>Date</label>
+      <input id="inp-date" type="date">
+    </div>
+    <div class="modal-row">
+      <button class="ctrl-btn primary" id="modal-save">Save</button>
+      <button class="ctrl-btn" id="modal-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings panel -->
+<div id="settings-panel">
+  <div id="settings-box">
+    <h2>Settings</h2>
+    <div class="stab-bar">
+      <button class="stab active" data-tab="timer">Timer</button>
+      <button class="stab" data-tab="sound">Sound</button>
+      <button class="stab" data-tab="theme">Theme</button>
+    </div>
+
+    <!-- Timer tab -->
+    <div class="stab-page active" id="tab-timer">
+      <div class="setting-row">
+        <label>Work (min)</label>
+        <input type="text" inputmode="numeric" id="s-work" placeholder="25">
+      </div>
+      <div class="setting-row">
+        <label>Break (min)</label>
+        <input type="text" inputmode="numeric" id="s-break" placeholder="5">
+      </div>
+      <div class="setting-row">
+        <label>Long break (min)</label>
+        <input type="text" inputmode="numeric" id="s-long" placeholder="15">
+      </div>
+      <div class="setting-row">
+        <label>Auto-start next session</label>
+        <input type="checkbox" id="s-autostart">
+      </div>
+      <div class="modal-row">
+        <button class="ctrl-btn primary" id="s-save">Save</button>
+        <button class="ctrl-btn" id="s-cancel">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Sound tab -->
+    <div class="stab-page" id="tab-sound">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Sound Pack</span>
+        <div style="display:flex;gap:6px" id="pack-chips">
+          <button class="theme-chip" data-pack="minimal">🔵 Minimal</button>
+          <button class="theme-chip" data-pack="ambient">🟣 Ambient</button>
+          <button class="theme-chip" data-pack="crystal">🔷 Crystal</button>
+        </div>
+      </div>
+      <div style="border-top:1px solid #333;padding-top:10px;display:flex;flex-direction:column;gap:8px">
+        <div class="setting-row">
+          <label style="font-size:12px;color:var(--muted)">Typing sounds</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="typing-enabled" checked style="accent-color:var(--accent);width:14px;height:14px">
+            <span style="font-size:11px;color:var(--muted)" id="typing-enabled-lbl">On</span>
+          </label>
+        </div>
+        <div class="slider-row">
+          <label>Volume <span id="lbl-typing-vol">18%</span></label>
+          <input type="range" id="sl-typing-vol" min="0" max="100" value="18">
+        </div>
+        <div class="setting-row">
+          <label style="font-size:12px;color:var(--muted)">Note mode</label>
+          <select id="typing-mode" style="background:var(--bg);border:1px solid #444;color:var(--fg);padding:4px 8px;border-radius:var(--radius);font-family:var(--font);font-size:12px">
+            <option value="1">Random</option>
+            <option value="0">Fixed per key</option>
+          </select>
+        </div>
+      </div>
+      <div class="sound-block">
+        <div class="sound-block-header"><span>🍅 Focus start</span><button class="preview-btn" data-preview="focus">▶ Preview</button></div>
+        <div class="slider-row"><label>Volume <span id="lbl-focus-vol">100%</span></label><input type="range" id="sl-focus-vol" min="0" max="100" value="100"></div>
+        <div class="slider-row"><label>Pitch <span id="lbl-focus-pitch">1.0×</span></label><input type="range" id="sl-focus-pitch" min="50" max="200" value="100"></div>
+      </div>
+      <div class="sound-block">
+        <div class="sound-block-header"><span>☕ Break</span><button class="preview-btn" data-preview="break">▶ Preview</button></div>
+        <div class="slider-row"><label>Volume <span id="lbl-break-vol">100%</span></label><input type="range" id="sl-break-vol" min="0" max="100" value="100"></div>
+        <div class="slider-row"><label>Pitch <span id="lbl-break-pitch">1.0×</span></label><input type="range" id="sl-break-pitch" min="50" max="200" value="100"></div>
+      </div>
+      <div class="sound-block">
+        <div class="sound-block-header"><span>✓ Task done</span><button class="preview-btn" data-preview="done">▶ Preview</button></div>
+        <div class="slider-row"><label>Volume <span id="lbl-done-vol">100%</span></label><input type="range" id="sl-done-vol" min="0" max="100" value="100"></div>
+        <div class="slider-row"><label>Pitch <span id="lbl-done-pitch">1.0×</span></label><input type="range" id="sl-done-pitch" min="50" max="200" value="100"></div>
+      </div>
+      <div class="modal-row">
+        <button class="ctrl-btn primary" id="snd-save">Save</button>
+        <button class="ctrl-btn" id="snd-cancel">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Theme tab -->
+    <div class="stab-page" id="tab-theme">
+      <div class="theme-grid" id="theme-grid"></div>
+      <div class="modal-row" style="margin-top:4px">
+        <button class="ctrl-btn" id="theme-cancel">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── state ────────────────────────────────────────────────────────────────────
+let state = { tasks: [], active_task_id: '', work_minutes: 25, break_minutes: 5, long_break_min: 15, auto_start: false, daily_sessions_count: 0 };
+let timerRunning = false;
+let editingId = null;
+let weeklyView = false;
+let modalWeekday = -1;
+let taskFilter = 'all';
+let zenMode = false;
+let totalTimerSec = 0; // for ring progress
+
+// ── IPC helpers ──────────────────────────────────────────────────────────────
+function send(msg) {
+  if (window.webkit?.messageHandlers?.ipc)
+    window.webkit.messageHandlers.ipc.postMessage(JSON.stringify(msg));
+}
+
+window.onBackendMessage = function(json) {
+  const msg = JSON.parse(json);
+  if (msg.type === 'state') { state = msg.data; render(); }
+  if (msg.type === 'tick')  { updateTimer(msg.data); }
+  if (msg.type === 'theme') { applyTheme(msg.data); }
+};
+
+// ── render ───────────────────────────────────────────────────────────────────
+function render() {
+  renderTasks();
+  updateDateLabel();
+  renderPresetBar();
+  if (!document.getElementById('settings-panel').classList.contains('open')) syncSettings();
+  if (weeklyView) renderWeekView();
+}
+
+function renderTasks() {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayWd = new Date().getDay();
+  const list = document.getElementById('task-list');
+  let tasks = state.tasks.filter(t =>
+    (!t.recurring && t.date === today) ||
+    (t.recurring && t.weekday === todayWd)
+  );
+  // Apply filter
+  if (taskFilter === 'pending') tasks = tasks.filter(t => !t.done);
+  if (taskFilter === 'done')    tasks = tasks.filter(t => t.done);
+
+  list.innerHTML = '';
+  tasks.forEach((t, idx) => {
+    const sessions = t.pomodoro_estimate > 0 ? t.pomodoro_estimate
+                   : (Math.ceil(t.estimated_minutes / state.work_minutes) || 1);
+    const done = t.done || t.completed_sessions >= sessions;
+    const active = t.id === state.active_task_id;
+
+    const statusBadge = done
+      ? `<span class="status-badge done">done</span>`
+      : active ? `<span class="status-badge active">active</span>` : '';
+
+    const finishBtn = (!done && active)
+      ? `<button class="finish-btn" data-finish="${t.id}" title="Finish now">⏹</button>` : '';
+    const redoBtn = done
+      ? `<button data-redo="${t.id}" title="Redo">↺</button>` : '';
+
+    // Tag badge
+    const tagBadge = t.tag
+      ? `<span class="tag-badge" style="background:${t.tag_color||'#4a9eff'}22;color:${t.tag_color||'#4a9eff'};border:1px solid ${t.tag_color||'#4a9eff'}44">${esc(t.tag)}</span>`
+      : '';
+
+    // Pomodoro progress
+    const pomoStr = `${t.completed_sessions}/${sessions} 🍅`;
+
+    const div = document.createElement('div');
+    div.className = 'task-item' + (active ? ' active' : '') + (done ? ' done-task' : '');
+    div.dataset.id = t.id;
+    div.draggable = true;
+    div.innerHTML = `
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <div class="task-check ${done ? 'checked' : ''}" data-id="${t.id}">${done ? '✓' : ''}</div>
+      <div class="task-info">
+        <div class="task-title">${esc(t.title)}${t.recurring ? ' <span class="recurring-badge">↻</span>' : ''}${tagBadge}</div>
+        <div class="task-meta"><span class="pomo-progress">${pomoStr}</span><span>${t.estimated_minutes}min</span></div>
+      </div>
+      ${statusBadge}
+      <div class="task-actions">
+        ${finishBtn}${redoBtn}
+        <button data-edit="${t.id}">✎</button>
+        <button data-del="${t.id}">✕</button>
+      </div>`;
+
+    div.addEventListener('click', e => {
+      if (e.target.closest('[data-finish]')) { send({ action: 'finish_task', id: t.id }); return; }
+      if (e.target.closest('[data-redo]'))   { send({ action: 'toggle_done', id: t.id }); return; }
+      if (e.target.closest('[data-edit]'))   { openModal(t); return; }
+      if (e.target.closest('[data-del]'))    { send({ action: 'delete_task', id: t.id }); return; }
+      if (e.target.closest('.task-check'))   { send({ action: 'toggle_done', id: t.id }); return; }
+      send({ action: 'select_task', id: t.id });
+    });
+
+    // Drag & drop
+    div.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', t.id);
+      div.classList.add('dragging');
+    });
+    div.addEventListener('dragend', () => div.classList.remove('dragging'));
+    div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('drag-over'); });
+    div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      div.classList.remove('drag-over');
+      const fromId = e.dataTransfer.getData('text/plain');
+      if (fromId === t.id) return;
+      // Build new order
+      const items = [...list.querySelectorAll('.task-item')];
+      const ids = items.map(el => el.dataset.id);
+      const fromIdx = ids.indexOf(fromId);
+      const toIdx   = ids.indexOf(t.id);
+      ids.splice(fromIdx, 1);
+      ids.splice(toIdx, 0, fromId);
+      send({ action: 'reorder_tasks', ids });
+    });
+
+    list.appendChild(div);
+  });
+}
+
+// ── weekly view ───────────────────────────────────────────────────────────────
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function renderWeekView() {
+  const todayWd = new Date().getDay();
+  const wv = document.getElementById('week-view');
+  wv.innerHTML = '';
+  for (let wd = 0; wd < 7; wd++) {
+    const tasks = state.tasks.filter(t => t.recurring && t.weekday === wd);
+    const isToday = wd === todayWd;
+    const col = document.createElement('div');
+    col.className = 'week-day';
+    col.innerHTML = `
+      <div class="week-day-header">
+        <span class="${isToday ? 'today' : ''}">${DAY_NAMES[wd]}${isToday ? ' · today' : ''}</span>
+        <button class="add-day-btn" data-wd="${wd}">+ add</button>
+      </div>`;
+    tasks.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'week-task';
+      row.innerHTML = `
+        <span>${esc(t.title)}</span>
+        <span class="wt-meta">${t.estimated_minutes}min</span>
+        <div class="wt-actions">
+          <button data-edit="${t.id}">✎</button>
+          <button data-del="${t.id}">✕</button>
+        </div>`;
+      row.querySelector('[data-edit]').onclick = () => openModal(t);
+      row.querySelector('[data-del]').onclick  = () => send({ action: 'delete_task', id: t.id });
+      col.appendChild(row);
+    });
+    col.querySelector('.add-day-btn').onclick = () => openModal(null, wd);
+    wv.appendChild(col);
+  }
+}
+
+document.getElementById('view-toggle').onclick = () => {
+  weeklyView = !weeklyView;
+  const btn = document.getElementById('view-toggle');
+  btn.textContent = weeklyView ? '← Back' : 'Week';
+  btn.classList.toggle('active', weeklyView);
+  document.getElementById('task-section').classList.toggle('hidden', weeklyView);
+  document.getElementById('week-view').classList.toggle('open', weeklyView);
+  if (weeklyView) renderWeekView();
+};
+
+function updateDateLabel() {
+  const d = new Date();
+  document.getElementById('today-label').textContent =
+    d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+}
+
+// ── filter buttons ────────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.onclick = () => {
+    taskFilter = btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTasks();
+  };
+});
+
+// ── timer display ─────────────────────────────────────────────────────────────
+const RING_CIRCUMFERENCE = 2 * Math.PI * 70; // r=70 → ~439.82
+
+function updateTimer(data) {
+  const { state: ts, seconds_left, current_session, total_sessions, task_title } = data;
+  timerRunning = (ts === 'Work' || ts === 'Break' || ts === 'LongBreak');
+
+  const m = String(Math.floor(seconds_left / 60)).padStart(2, '0');
+  const s = String(seconds_left % 60).padStart(2, '0');
+  document.getElementById('timer-display').textContent = `${m}:${s}`;
+
+  // Ring progress
+  if (ts === 'Work' || ts === 'Break' || ts === 'LongBreak' || ts === 'Paused') {
+    const total = ts === 'Work' ? state.work_minutes * 60
+                : ts === 'LongBreak' ? state.long_break_min * 60
+                : state.break_minutes * 60;
+    const progress = seconds_left / (total || 1);
+    const offset = RING_CIRCUMFERENCE * progress;
+    document.getElementById('ring-fill').style.strokeDashoffset = offset;
+  } else {
+    document.getElementById('ring-fill').style.strokeDashoffset = RING_CIRCUMFERENCE;
+  }
+
+  // Phase class for color
+  const panel = document.getElementById('timer-panel');
+  panel.className = '';
+  if (ts === 'Break' || ts === 'LongBreak') panel.classList.add('phase-break');
+  else if (ts === 'Paused') panel.classList.add('phase-paused');
+
+  // Status dot
+  const dot = document.getElementById('status-dot');
+  dot.className = '';
+  if (ts === 'Work') dot.classList.add('work');
+  else if (ts === 'Break' || ts === 'LongBreak') dot.classList.add('break');
+  else if (ts === 'Paused') dot.classList.add('paused');
+
+  const labels = { Work: 'WORK', Break: 'BREAK', LongBreak: 'LONG BREAK', Paused: 'PAUSED', Idle: 'IDLE' };
+  document.getElementById('session-label').textContent =
+    ts === 'Idle' ? 'IDLE' : `${labels[ts] || ts} · ${current_session}/${total_sessions}`;
+  document.getElementById('task-name').textContent = task_title || '—';
+
+  // Dots
+  const dots = document.getElementById('session-dots');
+  dots.innerHTML = '';
+  for (let i = 1; i <= total_sessions; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < current_session ? ' done' : i === current_session ? ' active' : '');
+    dots.appendChild(d);
+  }
+
+  // Buttons
+  document.getElementById('btn-start').disabled = timerRunning || ts === 'Paused';
+  document.getElementById('btn-pause').disabled = !timerRunning && ts !== 'Paused';
+  document.getElementById('btn-skip').disabled  = ts === 'Idle';
+  document.getElementById('btn-reset').disabled = ts === 'Idle';
+
+  const pauseBtn = document.getElementById('btn-pause');
+  if (ts === 'Paused') {
+    pauseBtn.innerHTML = '▶ Resume';
+    pauseBtn.disabled = false;
+    pauseBtn.onclick = () => send({ action: 'resume' });
+  } else {
+    pauseBtn.innerHTML = '⏸ Pause';
+    pauseBtn.onclick = () => send({ action: 'pause' });
+  }
+}
+
+// ── controls ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-start').onclick = () => send({ action: 'start' });
+document.getElementById('btn-pause').onclick = () => send({ action: 'pause' });
+document.getElementById('btn-skip').onclick  = () => send({ action: 'skip_session' });
+document.getElementById('btn-reset').onclick = () => send({ action: 'reset' });
+
+// ── zen mode ──────────────────────────────────────────────────────────────────
+document.getElementById('zen-btn').onclick = () => {
+  zenMode = !zenMode;
+  document.body.classList.toggle('zen', zenMode);
+};
+
+// ── keyboard shortcuts ────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  // Don't fire when typing in inputs
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (document.querySelector('.open')) return; // modal/settings open
+
+  if (e.code === 'Space') {
+    e.preventDefault();
+    const ts = document.getElementById('session-label').textContent;
+    if (ts.includes('PAUSED')) send({ action: 'resume' });
+    else if (!document.getElementById('btn-start').disabled) send({ action: 'start' });
+    else send({ action: 'pause' });
+  }
+  if (e.key === 'r' || e.key === 'R') {
+    if (!document.getElementById('btn-reset').disabled) send({ action: 'reset' });
+  }
+  if (e.key === 'n' || e.key === 'N') {
+    if (!document.getElementById('btn-skip').disabled) send({ action: 'skip_session' });
+  }
+  if (e.key === 'z' || e.key === 'Z') {
+    document.getElementById('zen-btn').click();
+  }
+});
+
+</script>
+
+<script>
+// ── add/edit modal ────────────────────────────────────────────────────────────
+document.getElementById('add-task-btn').onclick = () => openModal(null);
+
+function openModal(task, forceWeekday = -1) {
+  editingId = task ? task.id : null;
+  modalWeekday = forceWeekday;
+  document.getElementById('modal-title').textContent = task ? 'Edit Task' : 'New Task';
+  document.getElementById('inp-title').value   = task ? task.title : '';
+  document.getElementById('inp-minutes').value = task ? task.estimated_minutes : 25;
+  document.getElementById('inp-pomo').value    = (task && task.pomodoro_estimate > 0) ? task.pomodoro_estimate : '';
+  document.getElementById('inp-tag').value     = task ? (task.tag || '') : '';
+  document.getElementById('inp-tag-color').value = task ? (task.tag_color || '#4a9eff') : '#4a9eff';
+
+  const recurring = task ? !!task.recurring : (forceWeekday >= 0);
+  document.getElementById('inp-recurring').checked = recurring;
+
+  const wd = task ? task.weekday : (forceWeekday >= 0 ? forceWeekday : new Date().getDay());
+  document.getElementById('inp-weekday').value = wd >= 0 ? wd : new Date().getDay();
+  document.getElementById('inp-date').value = (!task || !task.recurring)
+    ? (task ? task.date : new Date().toISOString().slice(0,10))
+    : new Date().toISOString().slice(0,10);
+
+  toggleRecurringFields(recurring);
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('inp-title').focus(), 50);
+}
+
+function toggleRecurringFields(recurring) {
+  document.getElementById('inp-weekday-row').classList.toggle('visible', recurring);
+  document.getElementById('inp-date-row').style.display = recurring ? 'none' : '';
+}
+
+document.getElementById('inp-recurring').onchange = e => toggleRecurringFields(e.target.checked);
+document.getElementById('modal-cancel').onclick = closeModal;
+document.getElementById('modal-overlay').onclick = e => { if (e.target.id === 'modal-overlay') closeModal(); };
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+document.getElementById('modal-save').onclick = () => {
+  const title = document.getElementById('inp-title').value.trim();
+  if (!title) return;
+  const recurring = document.getElementById('inp-recurring').checked;
+  const pomoVal = parseInt(document.getElementById('inp-pomo').value) || 0;
+  const tag = document.getElementById('inp-tag').value.trim();
+  const tagColor = tag ? document.getElementById('inp-tag-color').value : '';
+  send({
+    action: editingId ? 'edit_task' : 'add_task',
+    id: editingId,
+    title,
+    estimated_minutes: parseInt(document.getElementById('inp-minutes').value) || 25,
+    pomodoro_estimate: pomoVal,
+    tag,
+    tag_color: tagColor,
+    date: recurring ? '' : document.getElementById('inp-date').value,
+    recurring,
+    weekday: recurring ? parseInt(document.getElementById('inp-weekday').value) : -1
+  });
+  closeModal();
+  if (weeklyView) setTimeout(renderWeekView, 100);
+};
+
+document.getElementById('inp-title').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('modal-save').click();
+  if (e.key === 'Escape') closeModal();
+});
+
+// ── presets ───────────────────────────────────────────────────────────────────
+function renderPresetBar() {
+  const chips = document.getElementById('preset-chips');
+  chips.innerHTML = '';
+  (state.presets || []).forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'preset-chip';
+    chip.innerHTML = `<span>${esc(p.name)}</span><span class="del-preset" data-name="${esc(p.name)}">✕</span>`;
+    chip.querySelector('span:first-child').onclick = () => {
+      if (confirm('Load preset "' + p.name + '"?'))
+        send({ action: 'load_preset', name: p.name });
+    };
+    chip.querySelector('.del-preset').onclick = e => {
+      e.stopPropagation();
+      if (confirm('Delete preset "' + p.name + '"?'))
+        send({ action: 'delete_preset', name: p.name });
+    };
+    chips.appendChild(chip);
+  });
+}
+
+document.getElementById('save-preset-btn').onclick = () => {
+  const name = prompt('Preset name:');
+  if (name && name.trim()) send({ action: 'save_preset', name: name.trim() });
+};
+
+// ── settings ──────────────────────────────────────────────────────────────────
+function syncSettings() {
+  document.getElementById('s-work').value  = state.work_minutes;
+  document.getElementById('s-break').value = state.break_minutes;
+  document.getElementById('s-long').value  = state.long_break_min;
+  document.getElementById('s-autostart').checked = !!state.auto_start;
+
+  const sf = state.snd_focus || {volume:1, pitch:1};
+  const sb = state.snd_break || {volume:1, pitch:1};
+  const sd = state.snd_done  || {volume:1, pitch:1};
+  setSlider('focus', sf); setSlider('break', sb); setSlider('done', sd);
+
+  document.querySelectorAll('#pack-chips .theme-chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.pack === (state.sound_pack || 'minimal'));
+  });
+  renderThemeGrid(state.theme || 'pywal');
+}
+
+document.getElementById('settings-btn').onclick = () => {
+  syncSettings();
+  document.getElementById('settings-panel').classList.add('open');
+};
+
+function closeSettings() { document.getElementById('settings-panel').classList.remove('open'); }
+document.getElementById('s-cancel').onclick     = closeSettings;
+document.getElementById('snd-cancel').onclick   = closeSettings;
+document.getElementById('theme-cancel').onclick = closeSettings;
+document.getElementById('settings-panel').onclick = e => {
+  if (e.target.id === 'settings-panel') closeSettings();
+};
+
+document.querySelectorAll('.stab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.stab-page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  };
+});
+
+document.getElementById('s-save').onclick = () => {
+  send({
+    action: 'save_settings',
+    work_minutes:   parseInt(document.getElementById('s-work').value)  || 25,
+    break_minutes:  parseInt(document.getElementById('s-break').value) || 5,
+    long_break_min: parseInt(document.getElementById('s-long').value)  || 15,
+    auto_start:     document.getElementById('s-autostart').checked
+  });
+  closeSettings();
+};
+
+// ── sound sliders ─────────────────────────────────────────────────────────────
+function setSlider(name, cfg) {
+  const vol   = document.getElementById('sl-' + name + '-vol');
+  const pitch = document.getElementById('sl-' + name + '-pitch');
+  if (vol)   { vol.value   = Math.round(cfg.volume * 100); updateSliderLabel(name, 'vol'); }
+  if (pitch) { pitch.value = Math.round(cfg.pitch  * 100); updateSliderLabel(name, 'pitch'); }
+}
+
+function updateSliderLabel(name, type) {
+  const el  = document.getElementById('sl-' + name + '-' + type);
+  const lbl = document.getElementById('lbl-' + name + '-' + type);
+  if (!el || !lbl) return;
+  lbl.textContent = type === 'vol'
+    ? Math.round(el.value) + '%'
+    : (el.value / 100).toFixed(1) + '×';
+}
+
+['focus','break','done'].forEach(name => {
+  ['vol','pitch'].forEach(type => {
+    const el = document.getElementById('sl-' + name + '-' + type);
+    if (el) el.oninput = () => updateSliderLabel(name, type);
+  });
+});
+
+document.querySelectorAll('.preview-btn').forEach(btn => {
+  btn.onclick = () => {
+    const name = btn.dataset.preview;
+    send({
+      action: 'preview_sound', sound: name,
+      volume: parseFloat(document.getElementById('sl-' + name + '-vol').value)   / 100,
+      pitch:  parseFloat(document.getElementById('sl-' + name + '-pitch').value) / 100
+    });
+  };
+});
+
+document.getElementById('snd-save').onclick = () => {
+  send({
+    action: 'save_sound_config',
+    focus_volume: parseFloat(document.getElementById('sl-focus-vol').value)   / 100,
+    focus_pitch:  parseFloat(document.getElementById('sl-focus-pitch').value) / 100,
+    break_volume: parseFloat(document.getElementById('sl-break-vol').value)   / 100,
+    break_pitch:  parseFloat(document.getElementById('sl-break-pitch').value) / 100,
+    done_volume:  parseFloat(document.getElementById('sl-done-vol').value)    / 100,
+    done_pitch:   parseFloat(document.getElementById('sl-done-pitch').value)  / 100
+  });
+  closeSettings();
+};
+
+document.getElementById('sl-typing-vol').oninput = function() {
+  document.getElementById('lbl-typing-vol').textContent = this.value + '%';
+};
+document.getElementById('sl-typing-vol').onchange = function() {
+  send({ action: 'set_typing_config',
+         volume: parseInt(this.value) / 100,
+         enabled: document.getElementById('typing-enabled').checked,
+         random: document.getElementById('typing-mode').value === '1' });
+};
+document.getElementById('typing-enabled').onchange = function() {
+  document.getElementById('typing-enabled-lbl').textContent = this.checked ? 'On' : 'Off';
+  send({ action: 'set_typing_config',
+         volume: parseInt(document.getElementById('sl-typing-vol').value) / 100,
+         enabled: this.checked,
+         random: document.getElementById('typing-mode').value === '1' });
+};
+document.getElementById('typing-mode').onchange = function() {
+  send({ action: 'set_typing_config',
+         volume: parseInt(document.getElementById('sl-typing-vol').value) / 100,
+         enabled: document.getElementById('typing-enabled').checked,
+         random: this.value === '1' });
+};
+
+document.querySelectorAll('#pack-chips .theme-chip').forEach(btn => {
+  btn.onclick = () => {
+    send({ action: 'set_sound_pack', pack: btn.dataset.pack });
+    document.querySelectorAll('#pack-chips .theme-chip').forEach(c => c.classList.remove('selected'));
+    btn.classList.add('selected');
+  };
+});
+
+// ── theme ─────────────────────────────────────────────────────────────────────
+const THEME_SWATCHES = {
+  pywal:'#888', dark:'#c14f30', light:'#c0392b',
+  catppuccin:'#cba6f7', gruvbox:'#cc241d', nord:'#bf616a', dracula:'#ff79c6'
+};
+
+function renderThemeGrid(current) {
+  const grid = document.getElementById('theme-grid');
+  const themes = ['pywal','dark','light','catppuccin','gruvbox','nord','dracula'];
+  grid.innerHTML = '';
+  themes.forEach(t => {
+    const chip = document.createElement('button');
+    chip.className = 'theme-chip' + (t === current ? ' selected' : '');
+    chip.innerHTML = `<span class="swatch" style="background:${THEME_SWATCHES[t]||'#888'}"></span>${t}`;
+    chip.onclick = () => {
+      send({ action: 'set_theme', theme: t });
+      document.querySelectorAll('#theme-grid .theme-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+    };
+    grid.appendChild(chip);
+  });
+}
+
+function applyTheme(colors) {
+  const r = document.documentElement.style;
+  r.setProperty('--bg',      colors.background  || '#1a1a1a');
+  r.setProperty('--fg',      colors.foreground  || '#e0e0e0');
+  r.setProperty('--accent',  colors.color1      || '#c14f30');
+  r.setProperty('--surface', colors.color0_dark || adjustBrightness(colors.background || '#1a1a1a', 20));
+  r.setProperty('--muted',   colors.color8      || '#666');
+}
+
+function adjustBrightness(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, ((n >> 16) & 0xff) + amt);
+  const g = Math.min(255, ((n >> 8)  & 0xff) + amt);
+  const b = Math.min(255, ( n        & 0xff) + amt);
+  return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── init ──────────────────────────────────────────────────────────────────────
+updateDateLabel();
+send({ action: 'init' });
+</script>
+</body>
+</html>

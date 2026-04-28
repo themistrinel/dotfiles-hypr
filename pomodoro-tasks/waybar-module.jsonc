@@ -1,0 +1,12 @@
+// Add this block to your waybar/config.jsonc modules-left/center/right:
+// "custom/pomodoro"
+
+"custom/pomodoro": {
+    "exec": "cat /tmp/pomodoro-waybar.json 2>/dev/null || echo '{\"text\":\"\"}'",
+    "return-type": "json",
+    "interval": 1,
+    "on-click": "kill -SIGUSR1 $(pidof pomodoro-tasks) 2>/dev/null",
+    "tooltip": true,
+    "format": "{}",
+    "escape": true
+}

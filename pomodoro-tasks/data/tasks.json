@@ -1,0 +1,15 @@
+{
+  "work_minutes": 25,
+  "break_minutes": 5,
+  "long_break_min": 15,
+  "active_task_id": "18a91c9620574ac9",
+  "theme": "light",
+  "sound_pack": "minimal",
+  "last_reset_date": "2026-04-23",
+  "snd_focus_vol": 1, "snd_focus_pitch": 1,
+  "snd_break_vol": 1, "snd_break_pitch": 1,
+  "snd_done_vol": 1, "snd_done_pitch": 1,
+  "tasks": [
+    {"id": "18a91c9620574ac9", "title": "teste", "date": "", "estimated_minutes": 50, "completed_sessions": 0, "done": false, "recurring": true, "weekday": 4}
+  ]
+}

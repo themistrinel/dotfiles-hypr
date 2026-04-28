@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/abyssal/.dotfiles/pomodoro-tasks/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
