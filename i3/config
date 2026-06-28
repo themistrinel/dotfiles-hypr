@@ -1,0 +1,160 @@
+# i3 config — ~/.dotfiles/i3/config
+# Mod = Super
+set $mod Mod4
+
+# Font
+font pango:JetBrains Mono 10
+
+# ── Gaps ─────────────────────────────────────────────────────
+gaps inner 6
+gaps outer 2
+smart_gaps on
+
+# Terminal
+set $term alacritty
+
+# Launcher
+set $launcher rofi -show drun -theme ~/.dotfiles/rofi-i3/config.rasi
+
+# ── Workspaces ──────────────────────────────────────────────
+set $ws1 "I"
+set $ws2 "II"
+set $ws3 "III"
+set $ws4 "IV"
+set $ws5 "V"
+set $ws6 "VI"
+set $ws7 "VII"
+set $ws8 "VIII"
+set $ws9 "IX"
+set $ws10 "X"
+
+# ── Keybindings ─────────────────────────────────────────────
+bindsym $mod+Return      exec $term
+bindsym $mod+space       exec $launcher
+bindsym $mod+q           kill
+bindsym $mod+Shift+c     reload
+bindsym $mod+Shift+r     restart
+bindsym $mod+Shift+e     exec ~/.dotfiles/scripts/powermenu.sh
+
+# Focus
+bindsym $mod+h           focus left
+bindsym $mod+j           focus down
+bindsym $mod+k           focus up
+bindsym $mod+l           focus right
+bindsym $mod+Left        focus left
+bindsym $mod+Down        focus down
+bindsym $mod+Up          focus up
+bindsym $mod+Right       focus right
+
+# Move
+bindsym $mod+Shift+h     move left
+bindsym $mod+Shift+j     move down
+bindsym $mod+Shift+k     move up
+bindsym $mod+Shift+l     move right
+bindsym $mod+Shift+Left  move left
+bindsym $mod+Shift+Down  move down
+bindsym $mod+Shift+Up    move up
+bindsym $mod+Shift+Right move right
+
+# Layout
+bindsym $mod+b           split h
+bindsym $mod+v           split v
+bindsym $mod+f           fullscreen toggle
+bindsym $mod+s           layout stacking
+bindsym $mod+w           layout tabbed
+bindsym $mod+e           exec thunar
+bindsym $mod+Ctrl+e      layout toggle split
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+Shift+f     focus mode_toggle
+bindsym $mod+a           focus parent
+
+# Resize mode
+mode "resize" {
+    bindsym h           resize shrink width  10 px or 10 ppt
+    bindsym j           resize grow   height 10 px or 10 ppt
+    bindsym k           resize shrink height 10 px or 10 ppt
+    bindsym l           resize grow   width  10 px or 10 ppt
+    bindsym Left        resize shrink width  10 px or 10 ppt
+    bindsym Down        resize grow   height 10 px or 10 ppt
+    bindsym Up          resize shrink height 10 px or 10 ppt
+    bindsym Right       resize grow   width  10 px or 10 ppt
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+    bindsym $mod+r mode "default"
+}
+bindsym $mod+r mode "resize"
+
+# Workspace switch
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+bindsym $mod+0 workspace $ws10
+
+# Move to workspace
+bindsym $mod+Shift+1 move container to workspace $ws1
+bindsym $mod+Shift+2 move container to workspace $ws2
+bindsym $mod+Shift+3 move container to workspace $ws3
+bindsym $mod+Shift+4 move container to workspace $ws4
+bindsym $mod+Shift+5 move container to workspace $ws5
+bindsym $mod+Shift+6 move container to workspace $ws6
+bindsym $mod+Shift+7 move container to workspace $ws7
+bindsym $mod+Shift+8 move container to workspace $ws8
+bindsym $mod+Shift+9 move container to workspace $ws9
+bindsym $mod+Shift+0 move container to workspace $ws10
+
+# Screenshot
+bindsym Print           exec mkdir -p ~/Pictures/Screenshots && scrot ~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png
+bindsym $mod+Shift+s    exec mkdir -p ~/Pictures/Screenshots && scrot -s ~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png
+
+# Clipboard history
+bindsym $mod+Shift+v exec ~/.dotfiles/scripts/clipboard-menu.sh
+
+# ── Colors ───────────────────────────────────────────────────
+# class                 border  bg      text    indicator child_border
+client.focused          #458588 #282828 #ebdbb2 #458588   #458588
+client.focused_inactive #333333 #1d2021 #928374 #333333   #333333
+client.unfocused        #282828 #282828 ##665c54 #282828   #282828
+client.urgent           #E06C75 #E06C75 #FFFFFF #E06C75   #E06C75
+
+# ── Borders ──────────────────────────────────────────────────
+default_border pixel 2
+default_floating_border pixel 2
+hide_edge_borders none
+for_window [class=".*"] border pixel 2
+for_window [instance="pulsemixer"] floating enable, resize set 600 400, move position center
+
+# ── Bar ──────────────────────────────────────────────────────
+bar {
+    status_command i3status-rs ~/.config/i3status-rust/config.toml
+    position       top
+    font           pango:JetBrains Mono 9
+
+    colors {
+        background #282828
+        statusline #ebdbb2
+        separator  #3c3836
+
+        # class             border  bg      text
+        focused_workspace   #458588 #282828 #ebdbb2
+        active_workspace    #313244 #313244 #888888
+        inactive_workspace  #282828 #282828 ##665c54
+        urgent_workspace    #E06C75 #E06C75 #FFFFFF
+    }
+}
+
+# ── Autostart ────────────────────────────────────────────────
+exec_always --no-startup-id xrandr --output HDMI-A-1 --mode 1920x1080 --rate 100
+exec_always --no-startup-id bash -c "pkill picom; picom --config ~/.config/picom/picom.conf"
+exec        --no-startup-id ~/.dotfiles/scripts/wallpaper.sh
+exec        --no-startup-id ~/.dotfiles/scripts/clipboard-watchdog.sh
+exec_always --no-startup-id autotiling
+exec_always --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+exec_always --no-startup-id gsettings set org.gnome.desktop.interface cursor-theme 'Capitaine-Gruvbox'
+exec_always --no-startup-id xsetroot -cursor_name left_ptr
+exec_always --no-startup-id gsettings set org.gnome.desktop.interface icon-theme 'Gruvbox-Plus-Dark'
