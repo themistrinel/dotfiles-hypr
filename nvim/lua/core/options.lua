@@ -49,7 +49,7 @@ opt.spell = false -- Desativado por padrão, use <leader>us para ligar
 vim.cmd([[
   augroup RestoreCursorShapeOnExit
       autocmd!
-      autocmd VimLeave * set guicursor=a:ver25
+      autocmd VimLeave * set guicursor=a:ver100
   augroup END
 ]])
 
