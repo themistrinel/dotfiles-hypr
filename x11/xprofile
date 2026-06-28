@@ -1,0 +1,45 @@
+# ~/.dotfiles/x11/xprofile
+# Executado pelo display manager ou pelo xinitrc antes do WM
+
+# PATH
+export PATH="$HOME/.local/bin:$PATH"
+
+# Nvim separado para i3
+export NVIM_APPNAME=nvim-i3
+
+# Terminal padrão
+export TERMINAL=alacritty
+
+# Flatpak — expõe apps no rofi/drun
+export XDG_DATA_DIRS="/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+
+# Monitor
+xrandr --output HDMI-A-1 --mode 1920x1080 --rate 100
+
+# Teclado: americano com acento (us intl)
+setxkbmap us intl
+
+# Fundo sólido preto (fallback — o i3 também chama xsetroot)
+xsetroot -solid "#1E1E2E"
+
+# Cursor
+export XCURSOR_THEME=Capitaine-Gruvbox
+export XCURSOR_SIZE=24
+xsetroot -cursor_name left_ptr
+gsettings set org.gnome.desktop.interface cursor-theme FrierenBLZ 2>/dev/null || true
+
+# Desabilitar beep
+xset -b
+
+# Repetição de tecla: delay 300ms, taxa 50/s
+xset r rate 300 50
+
+# PulseAudio
+pulseaudio --start
+
+# Autotiling
+pkill -f autotiling 2>/dev/null
+setsid autotiling &
+
+# Wallpaper
+"$HOME/.dotfiles/scripts/wallpaper.sh" &

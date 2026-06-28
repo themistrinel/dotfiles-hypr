@@ -1,0 +1,40 @@
+! ~/.dotfiles/x11/Xresources — gruvbox
+
+Xcursor.theme: Capitaine-Gruvbox
+Xcursor.size:  24
+
+URxvt.font:             xft:JetBrains Mono:size=11
+URxvt.boldFont:         xft:JetBrains Mono:bold:size=11
+URxvt.geometry:         120x34
+URxvt.scrollBar:        false
+URxvt.saveLines:        10000
+URxvt.cursorBlink:      false
+URxvt.cursorColor:      #EBDBB2
+URxvt.shell:            /bin/fish
+URxvt.borderLess:       false
+URxvt.internalBorder:   8
+URxvt.externalBorder:   0
+
+URxvt.background:       #282828
+URxvt.foreground:       #EBDBB2
+URxvt.color0:           #282828
+URxvt.color1:           #CC241D
+URxvt.color2:           #98971A
+URxvt.color3:           #D79921
+URxvt.color4:           #458588
+URxvt.color5:           #B16286
+URxvt.color6:           #689D6A
+URxvt.color7:           #A89984
+URxvt.color8:           #928374
+URxvt.color9:           #FB4934
+URxvt.color10:          #B8BB26
+URxvt.color11:          #FABD2F
+URxvt.color12:          #83A598
+URxvt.color13:          #D3869B
+URxvt.color14:          #8EC07C
+URxvt.color15:          #EBDBB2
+
+URxvt.iso14755:         false
+URxvt.iso14755_52:      false
+URxvt.keysym.Shift-Control-C: eval:selection_to_clipboard
+URxvt.keysym.Shift-Control-V: eval:paste_clipboard
