@@ -1,4 +1,0 @@
-/home/abyssal/.dotfiles/pomodoro-tasks/build/CMakeFiles/pomodoro-tasks.dir
-/home/abyssal/.dotfiles/pomodoro-tasks/build/CMakeFiles/typing-sounds.dir
-/home/abyssal/.dotfiles/pomodoro-tasks/build/CMakeFiles/edit_cache.dir
-/home/abyssal/.dotfiles/pomodoro-tasks/build/CMakeFiles/rebuild_cache.dir
