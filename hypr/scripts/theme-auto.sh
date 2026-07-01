@@ -7,6 +7,14 @@ PRESET_FILE="$HOME/.cache/wal/.preset"
 
 source "$CONF"
 
+# Aguarda o swww-daemon estar pronto
+for i in $(seq 1 20); do
+    swww query 2>/dev/null && break
+    sleep 0.5
+done
+
+OVERRIDE_FILE="$HOME/.cache/wal/.theme-override"
+
 # Converte HH:MM em minutos desde meia-noite
 to_min() { IFS=: read h m <<< "$1"; echo $(( 10#$h * 60 + 10#$m )); }
 
@@ -16,8 +24,20 @@ dark=$(to_min "$DARK_START")
 fstart=$(to_min "$FILTER_START")
 fend=$(to_min "$FILTER_END")
 
+# Respeita override manual (definido por theme.sh); limpa ao cruzar horário
+override=$(cat "$OVERRIDE_FILE" 2>/dev/null)
+if [ -n "$override" ]; then
+    if (( now == light || now == dark )); then
+        rm -f "$OVERRIDE_FILE"
+        override=""
+    fi
+fi
+
 # Determina modo: light ou dark
-if (( now >= light && now < dark )); then
+if (( now >= light && now < dark )); then auto_mode="light"; else auto_mode="dark"; fi
+mode="${override:-$auto_mode}"
+
+if [ "$mode" = "light" ]; then
     WALLPAPER="$WALLPAPER_DIR/$LIGHT_WALLPAPER"
     PRESET="$LIGHT_PRESET"
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'

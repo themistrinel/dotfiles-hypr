@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PRESET_FILE="$HOME/.cache/wal/.preset"
-PRESETS="dark\nsoft\nlight\nearthy\nmuted\ncolorz"
+PRESETS="dark\nsoft\nlight\nlight-vivid\nearthy\nmuted\ncolorz\nmono"
 
 chosen=$(echo -e "$PRESETS" | rofi -dmenu -p "Pywal Preset" -i)
 [ -z "$chosen" ] && exit 0
