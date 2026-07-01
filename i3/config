@@ -117,9 +117,9 @@ bindsym $mod+Shift+v exec ~/.dotfiles/scripts/clipboard-menu.sh
 
 # ── Colors ───────────────────────────────────────────────────
 # class                 border  bg      text    indicator child_border
-client.focused          #458588 #282828 #ebdbb2 #458588   #458588
-client.focused_inactive #333333 #1d2021 #928374 #333333   #333333
-client.unfocused        #282828 #282828 ##665c54 #282828   #282828
+client.focused          #4c7899 #1e1e2e #cdd6f4 #4c7899   #4c7899
+client.focused_inactive #333333 #1a1a2e #888888 #333333   #333333
+client.unfocused        #1e1e2e #1e1e2e ##555555 #1e1e2e   #1e1e2e
 client.urgent           #E06C75 #E06C75 #FFFFFF #E06C75   #E06C75
 
 # ── Borders ──────────────────────────────────────────────────
@@ -136,14 +136,14 @@ bar {
     font           pango:JetBrains Mono 9
 
     colors {
-        background #282828
-        statusline #ebdbb2
-        separator  #3c3836
+        background #1e1e2e
+        statusline #cdd6f4
+        separator  #313244
 
         # class             border  bg      text
-        focused_workspace   #458588 #282828 #ebdbb2
+        focused_workspace   #4c7899 #1e1e2e #cdd6f4
         active_workspace    #313244 #313244 #888888
-        inactive_workspace  #282828 #282828 ##665c54
+        inactive_workspace  #1e1e2e #1e1e2e ##555555
         urgent_workspace    #E06C75 #E06C75 #FFFFFF
     }
 }

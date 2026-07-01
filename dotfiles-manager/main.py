@@ -71,6 +71,160 @@ CONFIGS = [
     ("Wezterm", f"{DOTFILES}/wezterm/wezterm.lua", "lua"),
 ]
 
+THEME_CONF = f"{DOTFILES}/hypr/scripts/theme-schedule.conf"
+WALLPAPER_DIR = os.path.expanduser("~/Pictures/Wallpapers")
+WAL_PRESETS = ["dark", "soft", "light", "earthy", "muted", "colorz"]
+
+THEME_KEYS = {
+    "LIGHT_WALLPAPER": (r'LIGHT_WALLPAPER="([^"]*)"', 'LIGHT_WALLPAPER="{}"'),
+    "DARK_WALLPAPER":  (r'DARK_WALLPAPER="([^"]*)"',  'DARK_WALLPAPER="{}"'),
+    "LIGHT_PRESET":    (r'LIGHT_PRESET="([^"]*)"',    'LIGHT_PRESET="{}"'),
+    "DARK_PRESET":     (r'DARK_PRESET="([^"]*)"',     'DARK_PRESET="{}"'),
+    "LIGHT_START":     (r'LIGHT_START="([^"]*)"',     'LIGHT_START="{}"'),
+    "DARK_START":      (r'DARK_START="([^"]*)"',      'DARK_START="{}"'),
+}
+
+
+def read_theme_conf():
+    import re
+    result = {}
+    try:
+        with open(THEME_CONF) as f:
+            content = f.read()
+        for key, (pattern, _) in THEME_KEYS.items():
+            m = re.search(pattern, content)
+            result[key] = m.group(1) if m else ""
+    except Exception:
+        pass
+    return result
+
+
+def write_theme_conf(key, value):
+    import re
+    _, fmt = THEME_KEYS[key]
+    pattern, _ = THEME_KEYS[key]
+    try:
+        with open(THEME_CONF) as f:
+            content = f.read()
+        new_content = re.sub(pattern, fmt.format(value), content)
+        with open(THEME_CONF, "w") as f:
+            f.write(new_content)
+    except Exception as e:
+        print(f"Error writing theme conf: {e}")
+
+
+def pick_wallpaper_dialog(parent, callback):
+    dialog = Gtk.FileDialog()
+    f = Gio.File.new_for_path(WALLPAPER_DIR)
+    dialog.set_initial_folder(f)
+    filter_ = Gtk.FileFilter()
+    filter_.set_name("Images")
+    for pat in ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp", "*.mp4", "*.mkv"]:
+        filter_.add_pattern(pat)
+    store = Gio.ListStore.new(Gtk.FileFilter)
+    store.append(filter_)
+    dialog.set_filters(store)
+    dialog.open(parent, None, lambda d, r: _on_file_picked(d, r, callback))
+
+
+def _on_file_picked(dialog, result, callback):
+    try:
+        f = dialog.open_finish(result)
+        if f:
+            callback(f.get_path())
+    except Exception:
+        pass
+
+
+def make_preview(path):
+    """Returns a Gtk.Picture loaded from path, or a placeholder label."""
+    picture = Gtk.Picture()
+    picture.set_size_request(320, 180)
+    picture.set_content_fit(Gtk.ContentFit.COVER)
+    picture.set_can_shrink(True)
+    if path and os.path.isfile(path):
+        picture.set_filename(path)
+    else:
+        picture.set_filename(None)
+    return picture
+
+
+def build_wallpaper_section(win_ref, title, wall_key, preset_key, time_key, conf):
+    """Builds a group + preview card for one theme (light or dark)."""
+    outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
+    # Preview card
+    wall_path = os.path.join(WALLPAPER_DIR, conf.get(wall_key, ""))
+    picture = make_preview(wall_path)
+    frame = Gtk.Frame(css_classes=["card"])
+    frame.set_child(picture)
+    outer.append(frame)
+
+    group = Adw.PreferencesGroup(title=title)
+
+    # Wallpaper row
+    wall_row = Adw.ActionRow(title="Wallpaper", subtitle=conf.get(wall_key, ""))
+    browse_btn = Gtk.Button(label="Browse…", valign=Gtk.Align.CENTER, css_classes=["flat"])
+    def on_browse(_, row=wall_row, pic=picture, wk=wall_key):
+        def cb(path):
+            name = os.path.basename(path)
+            write_theme_conf(wk, name)
+            row.set_subtitle(name)
+            pic.set_filename(path)
+        pick_wallpaper_dialog(win_ref[0], cb)
+    browse_btn.connect("clicked", on_browse)
+    wall_row.add_suffix(browse_btn)
+    group.add(wall_row)
+
+    # Preset row
+    preset_row = Adw.ComboRow(title="Pywal Preset")
+    preset_row.set_model(Gtk.StringList.new(WAL_PRESETS))
+    cur = conf.get(preset_key, "dark")
+    preset_row.set_selected(WAL_PRESETS.index(cur) if cur in WAL_PRESETS else 0)
+    preset_row.connect("notify::selected", lambda r, _, pk=preset_key:
+        write_theme_conf(pk, WAL_PRESETS[r.get_selected()]))
+    group.add(preset_row)
+
+    # Time row
+    time_row = Adw.EntryRow(title="Start time (HH:MM)", show_apply_button=True)
+    time_row.set_text(conf.get(time_key, ""))
+    time_row.connect("apply", lambda r, tk=time_key: write_theme_conf(tk, r.get_text().strip()))
+    group.add(time_row)
+
+    outer.append(group)
+    return outer
+
+
+def build_wallpaper_page(win_ref):
+    scroll = Gtk.ScrolledWindow(vexpand=True)
+    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16,
+                  margin_top=16, margin_bottom=16, margin_start=16, margin_end=16)
+    scroll.set_child(box)
+
+    conf = read_theme_conf()
+
+    box.append(build_wallpaper_section(win_ref, "☀️ Light Theme",
+        "LIGHT_WALLPAPER", "LIGHT_PRESET", "LIGHT_START", conf))
+    box.append(build_wallpaper_section(win_ref, "🌙 Dark Theme",
+        "DARK_WALLPAPER", "DARK_PRESET", "DARK_START", conf))
+
+    # --- Apply now ---
+    apply_group = Adw.PreferencesGroup(title="Apply")
+    for label, cmd in [
+        ("Apply Light Theme Now",    ["bash", "-c", f"echo light > ~/.cache/wal/.theme-override && {DOTFILES}/hypr/scripts/theme-auto.sh"]),
+        ("Apply Dark Theme Now",     ["bash", "-c", f"echo dark  > ~/.cache/wal/.theme-override && {DOTFILES}/hypr/scripts/theme-auto.sh"]),
+        ("Apply Auto (by schedule)", ["bash", "-c", f"rm -f ~/.cache/wal/.theme-override && {DOTFILES}/hypr/scripts/theme-auto.sh"]),
+    ]:
+        row = Adw.ActionRow(title=label)
+        btn = Gtk.Button(label="Run", valign=Gtk.Align.CENTER, css_classes=["suggested-action"])
+        btn.connect("clicked", lambda _, c=cmd: subprocess.Popen(c))
+        row.add_suffix(btn)
+        apply_group.add(row)
+    box.append(apply_group)
+
+    return scroll
+
+
 SETTINGS = [
     ("Waybar Font", f"{DOTFILES}/waybar/style.css", r"font-family:\s*([^;]+);"),
     ("Waybar Font Size", f"{DOTFILES}/waybar/style.css", r"font-size:\s*([^;]+);"),
@@ -203,6 +357,7 @@ class DotfilesApp(Adw.Application):
 
     def on_activate(self, app):
         win = Adw.ApplicationWindow(application=app, title="Dotfiles Manager", default_width=700, default_height=600)
+        win_ref = [win]  # mutable ref for file dialogs
 
         toolbar = Adw.ToolbarView()
         header = Adw.HeaderBar()
@@ -212,6 +367,7 @@ class DotfilesApp(Adw.Application):
         view_stack.add_titled_with_icon(build_keybinds_page(), "keybinds", "Keybinds", "input-keyboard-symbolic")
         view_stack.add_titled_with_icon(build_configs_page(), "configs", "Configs", "document-edit-symbolic")
         view_stack.add_titled_with_icon(build_settings_page(), "settings", "Settings", "preferences-system-symbolic")
+        view_stack.add_titled_with_icon(build_wallpaper_page(win_ref), "wallpaper", "Wallpaper", "image-x-generic-symbolic")
 
         switcher = Adw.ViewSwitcher(stack=view_stack, policy=Adw.ViewSwitcherPolicy.WIDE)
         header.set_title_widget(switcher)
