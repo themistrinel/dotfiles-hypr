@@ -39,6 +39,10 @@ else
     COLOR_SOURCE="$WALLPAPER"
     # Kill mpvpaper if we are switching to a static image
     killall mpvpaper 2>/dev/null
+    # Apply static wallpaper
+    if command -v swww >/dev/null 2>&1; then
+        swww img "$WALLPAPER" --transition-type grow --transition-pos top-right --transition-duration 2
+    fi
 fi
 
 # Run pywal to generate colors (skip GTK theming)
@@ -47,9 +51,11 @@ if command -v wal >/dev/null 2>&1; then
     case "$PRESET" in
         soft)   wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.4 ;;
         light)  wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.6 -l ;;
+        light-vivid) wal -i "$COLOR_SOURCE" -n -t -e --backend colorthief --saturate 0.7 -l ;;
         earthy) wal -i "$COLOR_SOURCE" -n -t -e --backend haishoku ;;
         muted)  wal -i "$COLOR_SOURCE" -n -t -e --backend colorthief ;;
         colorz) wal -i "$COLOR_SOURCE" -n -t -e --backend colorz ;;
+        mono)   wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.0 ;;
         *)      wal -i "$COLOR_SOURCE" -n -t -e --saturate 0.8 ;;  # dark (default)
     esac
 fi

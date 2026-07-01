@@ -1,4 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+SETUVAR --export SSH_AGENT_PID:974
+SETUVAR --export SSH_AUTH_SOCK:/home/abyssal/\x2essh/agent/s\x2elHgXVr00zz\x2eagent\x2e9YpxWqnkkD
 SETUVAR __fish_initialized:4300
-SETUVAR fish_user_paths:/usr/sbin\x1e/home/abyssal/\x2enpm\x2dglobal/bin\x1e/usr/local/bin\x1e/home/abyssal/\x2elocal/bin
+SETUVAR fish_user_paths:/home/abyssal/\x2eopencode/bin\x1e/home/abyssal/\x2epyenv/bin\x1e/usr/sbin\x1e/home/abyssal/\x2enpm\x2dglobal/bin\x1e/usr/local/bin\x1e/home/abyssal/\x2elocal/bin

@@ -20,8 +20,9 @@ if status is-interactive
     command -v zoxide &> /dev/null && zoxide init fish | source
     command -v zoxide &> /dev/null && zoxide init fish --cmd cd | source
 
-    # Better ls
+    # Better ls (eza) + Better cat (bat)
     alias ls='eza --icons --group-directories-first -1'
+    alias cat='bat --paging=never'
 
     # Abbrs
     abbr py 'python3'
@@ -78,3 +79,20 @@ end
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
 set --export PATH $BUN_INSTALL/bin $PATH
+
+
+# SSH agent persistente via keychain
+# if status is-login
+#     keychain --quiet --nogui ~/.ssh/id_ed25519_gitlab
+# end
+# if test -f ~/.keychain/(uname -n)-fish
+#     source ~/.keychain/(uname -n)-fish
+# end
+echo -e '\e[5 q'  # bar cursor
+
+# pyenv
+set -gx PYENV_ROOT "$HOME/.pyenv"
+fish_add_path "$PYENV_ROOT/bin"
+pyenv init - fish | source
+# opencode
+fish_add_path /home/abyssal/.opencode/bin
