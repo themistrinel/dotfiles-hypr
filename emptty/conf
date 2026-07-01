@@ -1,0 +1,18 @@
+TTY_NUMBER=7
+SWITCH_TTY=true
+PRINT_ISSUE=true
+PRINT_MOTD=true
+
+# Lembra o último usuário digitado e preenche automaticamente no próximo login
+SELECT_LAST_USER=true
+DEFAULT_USER=abyssal
+
+AUTOLOGIN=false
+
+DBUS_LAUNCH=true
+XINITRC_LAUNCH=true
+
+VERTICAL_SELECTION=false
+
+LOGGING=rotate
+IDENTIFY_ENVS=false

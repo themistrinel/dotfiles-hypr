@@ -1,0 +1,76 @@
+@import "~/.cache/wal/colors-rofi.rasi"
+
+* {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+window {
+    transparency: "real";
+    background-color: @background;
+    border: 2px;
+    border-color: @selected;
+    border-radius: 10px;
+    width: 600px;
+}
+
+mainbox {
+    background-color: @background;
+    padding: 10px;
+}
+
+inputbar {
+    background-color: @background-alt;
+    border-radius: 5px;
+    padding: 10px;
+    spacing: 10px;
+    children: [ prompt, entry ];
+}
+
+prompt {
+    text-color: @selected;
+}
+
+entry {
+    text-color: @foreground;
+    placeholder: "Search clipboard...";
+    placeholder-color: @color8;
+}
+
+listview {
+    background-color: @background;
+    columns: 1;
+    lines: 10;
+    spacing: 5px;
+    padding: 10px 0 0 0;
+}
+
+element {
+    background-color: @background;
+    text-color: @foreground;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+element normal.normal {
+    background-color: @background;
+    text-color: @foreground;
+}
+
+element alternate.normal {
+    background-color: @background;
+    text-color: @foreground;
+}
+
+element selected.normal {
+    background-color: @selected;
+    text-color: @background;
+}
+
+element-text {
+    text-color: inherit;
+}

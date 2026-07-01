@@ -1,0 +1,55 @@
+/* rofi config — ~/.dotfiles/rofi/config.rasi */
+
+configuration {
+    modi:           "drun,run,window";
+    font:           "JetBrains Mono 11";
+    show-icons:     false;
+    drun-display-format: "{name}";
+    display-drun:   " Run";
+    display-run:    " Exec";
+    display-window: " Win";
+}
+
+* {
+    bg:      #282828;
+    fg:      #ebdbb2;
+    sel-bg:  #3c3836;
+    sel-fg:  #83a598;
+    border:  #458588;
+
+    background-color: transparent;
+    text-color:       @fg;
+}
+
+window {
+    background-color: @bg;
+    border:           2px solid;
+    border-color:     @border;
+    width:            480px;
+    border-radius:    4px;
+}
+
+mainbox   { padding: 8px; }
+inputbar  { children: [prompt, entry]; padding: 6px 0; }
+
+prompt {
+    text-color: @sel-fg;
+    padding:    0 8px 0 0;
+}
+
+entry {
+    placeholder:       "Search...";
+    placeholder-color: #928374;
+}
+
+listview {
+    lines:   8;
+    padding: 4px 0 0 0;
+    border:  1px 0 0 0;
+    border-color: #3c3836;
+}
+
+element         { padding: 6px 8px; border-radius: 2px; }
+element normal.normal { background-color: transparent; }
+element selected.normal { background-color: @sel-bg; text-color: @sel-fg; }
+element alternate.normal { background-color: transparent; }

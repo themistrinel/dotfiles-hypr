@@ -1,0 +1,41 @@
+# i3status config — ~/.dotfiles/i3status/config
+
+general {
+    colors        = true
+    color_good    = "#A6E3A1"
+    color_bad     = "#E06C75"
+    color_degraded = "#FAB387"
+    interval      = 5
+    output_format = "i3bar"
+}
+
+order += "cpu_usage"
+order += "memory"
+order += "disk /"
+order += "ethernet enp7s0"
+order += "tztime local"
+
+cpu_usage {
+    format = " CPU %usage"
+}
+
+memory {
+    format             = " MEM %used / %total"
+    threshold_degraded = "1G"
+    format_degraded    = " MEM LOW: %free"
+}
+
+disk "/" {
+    format          = " DISK %avail"
+    threshold_type  = percentage_free
+    low_threshold   = 10
+}
+
+ethernet enp7s0 {
+    format_up   = " %ip"
+    format_down = " offline"
+}
+
+tztime local {
+    format = " %d/%m/%Y  %H:%M"
+}

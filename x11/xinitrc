@@ -1,0 +1,12 @@
+#!/bin/sh
+# ~/.dotfiles/x11/xinitrc
+# Usado quando iniciado via `startx` (sem display manager)
+
+# Carregar xprofile se existir
+[ -f ~/.xprofile ] && . ~/.xprofile
+
+# Carregar recursos X se existir
+[ -f ~/.Xresources ] && xrdb -merge ~/.Xresources
+
+# Iniciar i3
+exec dbus-launch --exit-with-session i3
