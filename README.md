@@ -216,6 +216,9 @@ Se você já tem o sistema configurado e quer apenas adicionar mais temas:
 | `Super + Shift + R`     | **Reload Configurations**          |
 | `Super + Esc`           | Restart Waybar                    |
 | `Super + Shift + S`     | Screenshot                        |
+| `Super + Shift + O`     | OCR Rápido (Tesseract) ⚡          |
+| `Super + Ctrl + O`      | OCR Preciso (EasyOCR daemon) 🎯   |
+| `Super + Alt + O`       | Liga/Desliga daemon EasyOCR       |
 
 ### 🖥️ Workspaces
 | Keybinding              | Action                            |
@@ -225,6 +228,43 @@ Se você já tem o sistema configurado e quer apenas adicionar mais temas:
 | `Super + Mouse Scroll`  | Navigate workspaces               |
 | `Super + S`             | Toggle Special Workspace          |
 | `Super + Shift + S`     | Move to Special Workspace         |
+
+## 🔍 OCR - Extração de Texto
+
+Dois modos de OCR para capturar texto da tela via seleção de área.
+
+### Modo Rápido (Tesseract) ⚡
+
+Leve, inicia em milissegundos, ideal para uso cotidiano.
+
+```bash
+# Dependências
+sudo pacman -S tesseract tesseract-data-por tesseract-data-eng
+```
+
+### Modo Preciso (EasyOCR daemon) 🎯
+
+Modelo de deep learning mantido em memória. Primeira inicialização demora ~3s, chamadas subsequentes são instantâneas. Funciona bem com blocos grandes de texto, questões com alternativas, etc.
+
+```bash
+# Subir o daemon (Super+Alt+O)
+~/.config/hypr/scripts/ocr-daemon.sh start
+
+# Parar quando não precisar mais
+~/.config/hypr/scripts/ocr-daemon.sh stop
+```
+
+### Uso
+
+1. Pressione o keybind desejado
+2. Selecione a área da tela com o mouse
+3. O texto é copiado automaticamente para o clipboard
+
+| Keybind | Modo |
+| --- | --- |
+| `Super + Shift + O` | OCR Rápido (Tesseract) |
+| `Super + Ctrl + O` | OCR Preciso (daemon EasyOCR) |
+| `Super + Alt + O` | Liga/desliga daemon |
 
 ## 🧩 Zellij (Terminal Multiplexer)
 
