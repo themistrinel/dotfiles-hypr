@@ -183,11 +183,12 @@
         "on-click": "kill -SIGUSR1 $(cat /tmp/pomodoro.pid 2>/dev/null) 2>/dev/null || true"
     },
     "custom/window": {
-        "exec-if": "[ ! -f /tmp/pomodoro-running ]",
+        "exec-if": "[ ! -f /tmp/pomodoro-active ]",
         "exec": "hyprctl activewindow -j 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('title',''))\" 2>/dev/null || echo ''",
         "format": "󰣇 {}",
         "interval": 1,
-        "tooltip": false
+        "tooltip": true,
+        "max-length": 60
     },
     "custom/moon": {
         "exec": "python3 ~/.dotfiles/waybar/scripts/moon-phase.py",

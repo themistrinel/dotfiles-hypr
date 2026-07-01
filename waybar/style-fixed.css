@@ -140,3 +140,28 @@ window#waybar {
     margin-top: 5px;
     margin-left: 5px;
 }
+
+#custom-pomodoro {
+    background: #fbfcfd;
+    color: #8F7E70;
+    border-radius: 10px;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+#custom-pomodoro.work {
+    background: #fbfcfd;
+    color: #e79eb0;
+}
+
+#custom-pomodoro.break {
+    background: #fbfcfd;
+    color: #95abe4;
+}
+
+#custom-pomodoro.paused {
+    background: #fbfcfd;
+    color: #8b8e91;
+}
