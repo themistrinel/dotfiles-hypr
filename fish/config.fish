@@ -1,5 +1,8 @@
 set -g fish_greeting
 
+# Garante que ~/.local/bin tem prioridade (antes de /usr/sbin etc.)
+fish_add_path --prepend --global ~/.local/bin
+
 if status is-interactive
     # Auto-start zellij se não estiver dentro dele já e não for terminal de IDE
     # if not set -q ZELLIJ
@@ -23,6 +26,11 @@ if status is-interactive
     # Better ls (eza) + Better cat (bat)
     alias ls='eza --icons --group-directories-first -1'
     alias cat='bat --paging=never'
+
+    # GTK color scheme (sem trocar wallpaper/pywal)
+    alias dark='gtk-color dark'
+    alias light='gtk-color light'
+    alias toggle-theme='gtk-color toggle'
 
     # Abbrs
     abbr py 'python3'
