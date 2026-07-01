@@ -114,4 +114,7 @@ void ipc_dispatch(const std::string& msg, JSEval /*eval*/) {
     if (action == "save_preset")   { g_app->handle_save_preset(jget(msg,"name")); return; }
     if (action == "load_preset")   { g_app->handle_load_preset(jget(msg,"name")); return; }
     if (action == "delete_preset") { g_app->handle_delete_preset(jget(msg,"name")); return; }
+    if (action == "set_concurso_queue") {
+        g_app->handle_set_concurso_queue(jget_str_array(msg, "queue")); return;
+    }
 }

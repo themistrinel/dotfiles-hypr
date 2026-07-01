@@ -372,6 +372,7 @@
       </div>
       <button id="view-toggle" title="Weekly view">Week</button>
       <button id="add-task-btn">+ Add</button>
+      <button id="concurso-add-btn" title="Add next concurso subject" style="display:none">📚</button>
     </div>
   </div>
   <div id="task-list"></div>
@@ -428,6 +429,56 @@
       <button class="ctrl-btn primary" id="modal-save">Save</button>
       <button class="ctrl-btn" id="modal-cancel">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- Concurso panel -->
+<div id="concurso-panel" style="display:none;position:fixed;inset:0;background:var(--overlay,rgba(0,0,0,.6));z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg);border:1px solid var(--surface);border-radius:var(--radius);padding:18px;width:320px;max-height:88vh;display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h2 style="font-size:13px;color:var(--accent);letter-spacing:1px;margin:0">📚 CONCURSO</h2>
+      <button id="concurso-close-btn" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0">✕</button>
+    </div>
+
+    <!-- Progress + current/next -->
+    <div style="background:var(--surface);border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Progresso</span>
+        <span id="concurso-progress" style="font-size:11px;color:var(--accent);font-weight:600">0 / 0</span>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;height:4px;overflow:hidden">
+        <div id="concurso-progress-bar" style="height:100%;background:var(--accent);transition:width .3s;width:0%"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:10px;color:var(--muted);min-width:44px">AGORA</span>
+          <span id="concurso-current-label" style="font-size:14px;font-weight:700;color:var(--fg)">—</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:10px;color:var(--muted);min-width:44px">PRÓXIMA</span>
+          <span id="concurso-next-label" style="font-size:12px;color:var(--muted)">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="display:flex;gap:6px">
+      <button class="ctrl-btn primary" id="concurso-create-btn" style="flex:1">+ Nova tarefa</button>
+      <button class="ctrl-btn" id="concurso-skip-btn" title="Pular matéria sem concluir">⏭ Pular</button>
+    </div>
+
+    <!-- Queue editor -->
+    <details style="margin-top:2px">
+      <summary style="font-size:11px;color:var(--muted);cursor:pointer;user-select:none;padding:4px 0">⚙ Editar fila</summary>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+        <div style="font-size:11px;color:var(--muted)">Uma matéria por linha:</div>
+        <textarea id="concurso-queue-input" rows="10" style="width:100%;box-sizing:border-box;background:var(--surface);border:1px solid #444;color:var(--fg);font-family:var(--font);font-size:12px;padding:6px;border-radius:var(--radius);resize:vertical"></textarea>
+        <div style="display:flex;gap:6px">
+          <button class="ctrl-btn primary" id="concurso-save-queue-btn" style="flex:1">Salvar fila</button>
+          <button class="ctrl-btn" id="concurso-reset-btn" title="Resetar progresso para o início">↺ Reset</button>
+        </div>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -529,7 +580,7 @@
 
 <script>
 // ── state ────────────────────────────────────────────────────────────────────
-let state = { tasks: [], active_task_id: '', work_minutes: 25, break_minutes: 5, long_break_min: 15, auto_start: false, daily_sessions_count: 0 };
+let state = { tasks: [], active_task_id: '', work_minutes: 25, break_minutes: 5, long_break_min: 15, auto_start: false, daily_sessions_count: 0, concurso_queue: [], concurso_index: 0, last_concurso_task_id: '' };
 let timerRunning = false;
 let editingId = null;
 let weeklyView = false;
@@ -558,6 +609,7 @@ function render() {
   renderPresetBar();
   if (!document.getElementById('settings-panel').classList.contains('open')) syncSettings();
   if (weeklyView) renderWeekView();
+  updateConcursoBtn();
 }
 
 function renderTasks() {
@@ -593,6 +645,15 @@ function renderTasks() {
       ? `<span class="tag-badge" style="background:${t.tag_color||'#4a9eff'}22;color:${t.tag_color||'#4a9eff'};border:1px solid ${t.tag_color||'#4a9eff'}44">${esc(t.tag)}</span>`
       : '';
 
+    // Concurso queue indicator
+    const isConcursoActive = t.tag === 'concurso' && t.id === state.last_concurso_task_id;
+    const isConcursoOld    = t.tag === 'concurso' && t.id !== state.last_concurso_task_id && !done;
+    const concursoBadge = isConcursoActive
+      ? `<span title="Tarefa controladora da fila" style="font-size:10px;color:#f0a500;margin-left:4px">🎯</span>`
+      : isConcursoOld
+      ? `<span title="Fora do fluxo da fila" style="font-size:10px;color:var(--muted);margin-left:4px" >⚠</span>`
+      : '';
+
     // Pomodoro progress
     const pomoStr = `${t.completed_sessions}/${sessions} 🍅`;
 
@@ -604,7 +665,7 @@ function renderTasks() {
       <span class="drag-handle" title="Drag to reorder">⠿</span>
       <div class="task-check ${done ? 'checked' : ''}" data-id="${t.id}">${done ? '✓' : ''}</div>
       <div class="task-info">
-        <div class="task-title">${esc(t.title)}${t.recurring ? ' <span class="recurring-badge">↻</span>' : ''}${tagBadge}</div>
+        <div class="task-title">${esc(t.title)}${t.recurring ? ' <span class="recurring-badge">↻</span>' : ''}${tagBadge}${concursoBadge}</div>
         <div class="task-meta"><span class="pomo-progress">${pomoStr}</span><span>${t.estimated_minutes}min</span></div>
       </div>
       ${statusBadge}
@@ -1082,6 +1143,122 @@ function adjustBrightness(hex, amt) {
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ── Concurso Queue ────────────────────────────────────────────────────────────
+const DEFAULT_CONCURSO_QUEUE = [
+  "Português","Informática","Direito Proc. Penal","Direito Constitucional",
+  "Direito Administrativo","Raciocínio Lógico","Português","Matemática",
+  "Direito Processual Civil","Informática","Direito Proc. Penal","Português",
+  "Atualidades/PCD","Legislação Interna","Direito Penal","Raciocínio Lógico",
+  "Direito Administrativo","Matemática","Redação","Informática","Direito Processual Civil"
+];
+
+function concursoCurrentSubject() {
+  const q = state.concurso_queue;
+  if (!q || !q.length) return null;
+  return q[state.concurso_index % q.length];
+}
+
+function concursoNextSubject() {
+  const q = state.concurso_queue;
+  if (!q || !q.length) return null;
+  return q[(state.concurso_index + 1) % q.length];
+}
+
+function updateConcursoBtn() {
+  const btn = document.getElementById('concurso-add-btn');
+  const q = state.concurso_queue;
+  btn.style.display = (q && q.length > 0) ? '' : 'none';
+  const cur = concursoCurrentSubject();
+  btn.title = cur ? `Nova tarefa: ${cur}` : 'Concurso Queue';
+  if (document.getElementById('concurso-panel').style.display === 'flex') renderConcursoPanel();
+}
+
+function renderConcursoPanel() {
+  const q = state.concurso_queue;
+  const len = q ? q.length : 0;
+  const idx = len ? (state.concurso_index % len) : 0;
+  const cur  = len ? q[idx] : null;
+  const next = len ? q[(idx + 1) % len] : null;
+
+  document.getElementById('concurso-current-label').textContent = cur  || '(fila vazia)';
+  document.getElementById('concurso-next-label').textContent    = next || '—';
+  document.getElementById('concurso-progress').textContent      = len ? `${idx + 1} / ${len}` : '0 / 0';
+  document.getElementById('concurso-progress-bar').style.width  = len ? `${((idx + 1) / len) * 100}%` : '0%';
+
+  const hasActive = state.last_concurso_task_id &&
+    state.tasks.some(t => t.id === state.last_concurso_task_id && !t.done);
+  const createBtn = document.getElementById('concurso-create-btn');
+  createBtn.disabled = !cur || !!hasActive;
+  createBtn.title = hasActive ? 'Conclua a tarefa atual antes de criar uma nova' : '';
+
+  document.getElementById('concurso-queue-input').value =
+    len ? q.join('\n') : DEFAULT_CONCURSO_QUEUE.join('\n');
+}
+
+function openConcursoPanel() {
+  document.getElementById('concurso-panel').style.display = 'flex';
+  renderConcursoPanel();
+}
+
+function addConcursoTask() {
+  const cur = concursoCurrentSubject();
+  if (!cur) return;
+  document.getElementById('concurso-panel').style.display = 'none';
+  openModal({ id: null, title: cur, estimated_minutes: 25, date: new Date().toISOString().slice(0,10),
+              recurring: false, weekday: -1, tag: 'concurso', tag_color: '#f0a500', pomodoro_estimate: 0 });
+}
+
+document.getElementById('concurso-add-btn').onclick = () => {
+  const hasActive = state.last_concurso_task_id &&
+    state.tasks.some(t => t.id === state.last_concurso_task_id && !t.done);
+  if (hasActive) { openConcursoPanel(); return; }
+  addConcursoTask();
+};
+
+document.getElementById('concurso-close-btn').onclick = () => {
+  document.getElementById('concurso-panel').style.display = 'none';
+};
+
+document.getElementById('concurso-create-btn').onclick = () => {
+  addConcursoTask();
+  document.getElementById('concurso-panel').style.display = 'none';
+};
+
+document.getElementById('concurso-skip-btn').onclick = () => {
+  const q = state.concurso_queue;
+  if (!q || !q.length) return;
+  const newIdx = (state.concurso_index + 1) % q.length;
+  const rotated = [...q.slice(newIdx), ...q.slice(0, newIdx)];
+  send({ action: 'set_concurso_queue', queue: rotated });
+};
+
+document.getElementById('concurso-save-queue-btn').onclick = () => {
+  const lines = document.getElementById('concurso-queue-input').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  if (!lines.length) return;
+  send({ action: 'set_concurso_queue', queue: lines });
+  document.getElementById('concurso-panel').style.display = 'none';
+};
+
+document.getElementById('concurso-reset-btn').onclick = () => {
+  const q = state.concurso_queue;
+  const lines = document.getElementById('concurso-queue-input').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  send({ action: 'set_concurso_queue', queue: lines.length ? lines : (q.length ? q : DEFAULT_CONCURSO_QUEUE) });
+};
+
+// 📋 config button next to 📚
+(function() {
+  const btn = document.createElement('button');
+  btn.id = 'concurso-cfg-btn';
+  btn.title = 'Configurar fila do concurso';
+  btn.textContent = '📋';
+  btn.style.cssText = 'background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px';
+  btn.onclick = openConcursoPanel;
+  document.getElementById('concurso-add-btn').insertAdjacentElement('afterend', btn);
+})();
+
 
 // ── init ──────────────────────────────────────────────────────────────────────
 updateDateLabel();

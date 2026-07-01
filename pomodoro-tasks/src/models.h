@@ -57,4 +57,9 @@ struct AppState {
     // Daily stats
     int daily_sessions_count = 0;
     std::string daily_stats_date; // YYYY-MM-DD
+
+    // Concurso queue
+    std::vector<std::string> concurso_queue;
+    int concurso_index = 0;
+    std::string last_concurso_task_id; // empty = no active concurso task
 };

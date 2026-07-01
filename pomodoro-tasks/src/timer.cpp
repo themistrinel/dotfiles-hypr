@@ -27,9 +27,10 @@ struct PomodoroTimer::Impl {
     }
 
     void advance() {
+        if (state == TimerState::Idle) return;
         if (state == TimerState::Work) {
-            current_session++;
             if (cb.on_session_end) cb.on_session_end(make_status());
+            current_session++;
             if (current_session > total_sessions) {
                 state = TimerState::Idle;
                 if (cb.on_all_done) cb.on_all_done();

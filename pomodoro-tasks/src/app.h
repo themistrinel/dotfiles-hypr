@@ -41,6 +41,7 @@ public:
     void handle_save_preset(const std::string& name);
     void handle_load_preset(const std::string& name);
     void handle_delete_preset(const std::string& name);
+    void handle_set_concurso_queue(const std::vector<std::string>& queue);
 
     void eval_js(const std::string& js);
 

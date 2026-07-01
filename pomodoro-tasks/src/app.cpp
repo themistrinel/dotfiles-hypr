@@ -14,6 +14,7 @@
 #include <chrono>
 #include <unistd.h>
 #include <filesystem>
+#include <thread>
 
 App* g_app = nullptr;
 
@@ -29,6 +30,20 @@ static std::string jstr(const std::string& s) {
     return o + "\"";
 }
 
+// Advance concurso queue only if task is the designated current task
+static void maybe_advance_concurso(AppState& state, const std::string& task_id, bool done) {
+    if (!done) return;
+    if (state.concurso_queue.empty()) return;
+    if (task_id != state.last_concurso_task_id) return;
+    // Find the task and confirm tag
+    for (auto& t : state.tasks)
+        if (t.id == task_id && t.tag == "concurso") {
+            state.concurso_index = (state.concurso_index + 1) % (int)state.concurso_queue.size();
+            state.last_concurso_task_id = "";
+            return;
+        }
+}
+
 static std::string state_to_json(const AppState& s) {
     std::ostringstream o;
     o << "{\"work_minutes\":" << s.work_minutes
@@ -39,6 +54,14 @@ static std::string state_to_json(const AppState& s) {
       << ",\"sound_pack\":" << jstr(s.sound_pack)
       << ",\"auto_start\":" << (s.auto_start ? "true" : "false")
       << ",\"daily_sessions_count\":" << s.daily_sessions_count
+      << ",\"concurso_index\":" << s.concurso_index
+      << ",\"last_concurso_task_id\":" << jstr(s.last_concurso_task_id)
+      << ",\"concurso_queue\":[";
+    for (size_t i = 0; i < s.concurso_queue.size(); ++i) {
+        o << jstr(s.concurso_queue[i]);
+        if (i + 1 < s.concurso_queue.size()) o << ",";
+    }
+    o << "]"
       << ",\"tasks\":[";
     for (size_t i = 0; i < s.tasks.size(); ++i) {
         const auto& t = s.tasks[i];
@@ -117,7 +140,21 @@ App::~App() {
 }
 
 void App::eval_js(const std::string& js) {
-    if (webview_) webkit_web_view_evaluate_javascript(webview_, js.c_str(), -1, nullptr, nullptr, nullptr, nullptr, nullptr);
+    if (!webview_) return;
+    // WebKit must be called from the GTK main loop thread.
+    // If we're already on the main loop, call directly; otherwise marshal via g_idle_add.
+    if (g_main_context_is_owner(g_main_context_default())) {
+        webkit_web_view_evaluate_javascript(webview_, js.c_str(), -1, nullptr, nullptr, nullptr, nullptr, nullptr);
+    } else {
+        struct Ctx { WebKitWebView* wv; std::string js; };
+        auto* ctx = new Ctx{webview_, js};
+        g_idle_add([](gpointer data) -> gboolean {
+            auto* c = static_cast<Ctx*>(data);
+            webkit_web_view_evaluate_javascript(c->wv, c->js.c_str(), -1, nullptr, nullptr, nullptr, nullptr, nullptr);
+            delete c;
+            return G_SOURCE_REMOVE;
+        }, ctx);
+    }
 }
 
 void App::send_state() {
@@ -216,14 +253,14 @@ void App::on_session_end(TimerStatus s) {
     send_state();
 
     // Don't play break sound on the last session — on_all_done will play relax
-    bool is_last = (s.current_session > s.total_sessions);
+    bool is_last = (s.current_session >= s.total_sessions);
     if (!is_last) {
         Audio::play_break(state_.snd_break);
         std::string task_title;
         for (auto& t : state_.tasks)
             if (t.id == state_.active_task_id) { task_title = t.title; break; }
         notify_dunst("🍅 Pomodoro done!",
-            "Session " + std::to_string(s.current_session - 1) + "/" + std::to_string(s.total_sessions) +
+            "Session " + std::to_string(s.current_session) + "/" + std::to_string(s.total_sessions) +
             (task_title.empty() ? "" : " · " + task_title) + "\nTime for a break ☕");
     }
 }
@@ -234,6 +271,7 @@ void App::on_all_done() {
         if (t.id == state_.active_task_id) {
             t.done = true;
             task_title = t.title;
+            maybe_advance_concurso(state_, t.id, true);
             break;
         }
     }
@@ -248,8 +286,8 @@ void App::on_all_done() {
 }
 
 void App::notify_dunst(const std::string& summary, const std::string& body) {
-    std::string cmd = "notify-send -a 'Pomodoro' -t 5000 '" + summary + "' '" + body + "' &";
-    std::system(cmd.c_str());
+    std::string cmd = "notify-send -a 'Pomodoro' -t 5000 '" + summary + "' '" + body + "'";
+    std::thread([c = std::move(cmd)]{ std::system(c.c_str()); }).detach();
 }
 
 void App::update_daily_stats() {
@@ -405,6 +443,13 @@ void App::handle_add_task(const std::string& title, int minutes, const std::stri
     t.tag = tag;
     t.tag_color = tag_color;
     t.pomodoro_estimate = pomodoro_estimate;
+
+    if (tag == "concurso" && !state_.concurso_queue.empty()) {
+        int idx = state_.concurso_index % (int)state_.concurso_queue.size();
+        t.title = state_.concurso_queue[idx];
+        state_.last_concurso_task_id = t.id;
+    }
+
     state_.tasks.push_back(t);
     TaskStore::save(state_);
     send_state();
@@ -451,6 +496,7 @@ void App::handle_toggle_done(const std::string& id) {
         if (t.id != id) continue;
         t.done = !t.done;
         if (!t.done) { t.completed_sessions = 0; }  // redo → reset progress
+        maybe_advance_concurso(state_, id, t.done);
         break;
     }
     TaskStore::save(state_);
@@ -462,6 +508,7 @@ void App::handle_finish_task(const std::string& id) {
         if (t.id != id) continue;
         t.done = true;
         t.completed_sessions = t.total_sessions();
+        maybe_advance_concurso(state_, id, true);
         break;
     }
     if (state_.active_task_id == id) {
@@ -587,6 +634,14 @@ void App::handle_load_preset(const std::string& name) {
 void App::handle_delete_preset(const std::string& name) {
     state_.presets.erase(std::remove_if(state_.presets.begin(), state_.presets.end(),
         [&](const WeekPreset& p){ return p.name == name; }), state_.presets.end());
+    TaskStore::save(state_);
+    send_state();
+}
+
+void App::handle_set_concurso_queue(const std::vector<std::string>& queue) {
+    state_.concurso_queue = queue;
+    state_.concurso_index = 0;
+    state_.last_concurso_task_id = "";
     TaskStore::save(state_);
     send_state();
 }

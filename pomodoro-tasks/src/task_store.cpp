@@ -87,6 +87,27 @@ AppState TaskStore::load() {
     auto as = jget(raw, "auto_start"); s.auto_start = (as == "true" || as == "1");
     auto dc = jget(raw, "daily_sessions_count"); if (!dc.empty()) s.daily_sessions_count = std::stoi(dc);
     auto dd = jget(raw, "daily_stats_date"); if (!dd.empty()) s.daily_stats_date = dd;
+    auto ci = jget(raw, "concurso_index"); if (!ci.empty()) s.concurso_index = std::stoi(ci);
+    auto lc = jget(raw, "last_concurso_task_id"); if (!lc.empty()) s.last_concurso_task_id = lc;
+    // concurso_queue: simple string array
+    {
+        auto pos = raw.find("\"concurso_queue\"");
+        if (pos != std::string::npos) {
+            pos = raw.find('[', pos);
+            if (pos != std::string::npos) {
+                pos++;
+                while (pos < raw.size()) {
+                    while (pos < raw.size() && (raw[pos]==' '||raw[pos]==','||raw[pos]=='\n')) pos++;
+                    if (raw[pos] == ']') break;
+                    if (raw[pos] == '"') {
+                        auto end = raw.find('"', pos+1);
+                        s.concurso_queue.push_back(raw.substr(pos+1, end-pos-1));
+                        pos = end+1;
+                    } else break;
+                }
+            }
+        }
+    }
 
     for (auto& obj : jarray_objects(raw, "tasks")) {
         Task t;
@@ -137,6 +158,14 @@ void TaskStore::save(const AppState& s) {
       << "  \"auto_start\": "       << (s.auto_start ? "true" : "false") << ",\n"
       << "  \"daily_sessions_count\": " << s.daily_sessions_count << ",\n"
       << "  \"daily_stats_date\": " << jstr(s.daily_stats_date) << ",\n"
+      << "  \"concurso_index\": " << s.concurso_index << ",\n"
+      << "  \"last_concurso_task_id\": " << jstr(s.last_concurso_task_id) << ",\n"
+      << "  \"concurso_queue\": [";
+    for (size_t i = 0; i < s.concurso_queue.size(); ++i) {
+        o << jstr(s.concurso_queue[i]);
+        if (i + 1 < s.concurso_queue.size()) o << ",";
+    }
+    o << "],\n"
       << "  \"snd_focus_vol\": "  << s.snd_focus.volume << ", \"snd_focus_pitch\": " << s.snd_focus.pitch << ",\n"
       << "  \"snd_break_vol\": "  << s.snd_break.volume << ", \"snd_break_pitch\": " << s.snd_break.pitch << ",\n"
       << "  \"snd_done_vol\": "   << s.snd_done.volume  << ", \"snd_done_pitch\": "  << s.snd_done.pitch  << ",\n"

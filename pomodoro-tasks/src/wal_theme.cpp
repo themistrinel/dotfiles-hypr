@@ -93,5 +93,6 @@ void WalTheme::watch(std::function<void(std::string)> on_change) {
     GFileMonitor* mon = g_file_monitor_file(f, G_FILE_MONITOR_NONE, nullptr, nullptr);
     g_object_unref(f);
     if (!mon) return;
+    g_file_monitor_set_rate_limit(mon, 2000); // debounce 2s — pywal writes multiple times
     g_signal_connect(mon, "changed", G_CALLBACK(on_file_changed), new WatchCtx{on_change});
 }

@@ -91,9 +91,16 @@ static std::vector<int16_t> to_pcm(const std::vector<float>& buf) {
 
 static void play_pcm(std::vector<int16_t> buf) {
     pa_sample_spec ss{ PA_SAMPLE_S16LE, (uint32_t)RATE, 1 };
+    // Small buffer to avoid blocking on drain; latency ~100ms is fine for notifications
+    pa_buffer_attr attr{};
+    attr.maxlength = (uint32_t)-1;
+    attr.tlength   = pa_usec_to_bytes(100000, &ss); // 100ms
+    attr.prebuf    = (uint32_t)-1;
+    attr.minreq    = (uint32_t)-1;
+    attr.fragsize  = (uint32_t)-1;
     int err = 0;
     pa_simple* s = pa_simple_new(nullptr, "pomodoro-tasks", PA_STREAM_PLAYBACK,
-                                  nullptr, "sound", &ss, nullptr, nullptr, &err);
+                                  nullptr, "sound", &ss, nullptr, &attr, &err);
     if (!s) return;
     pa_simple_write(s, buf.data(), buf.size() * sizeof(int16_t), &err);
     pa_simple_drain(s, &err);
