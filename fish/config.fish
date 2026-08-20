@@ -20,7 +20,6 @@ if status is-interactive
 
     # Direnv + Zoxide
     command -v direnv &> /dev/null && direnv hook fish | source
-    command -v zoxide &> /dev/null && zoxide init fish | source
     command -v zoxide &> /dev/null && zoxide init fish --cmd cd | source
 
     # Better ls (eza) + Better cat (bat)
@@ -104,3 +103,8 @@ fish_add_path "$PYENV_ROOT/bin"
 pyenv init - fish | source
 # opencode
 fish_add_path /home/abyssal/.opencode/bin
+
+# open-design: aponta para o vela CI/CD como fallback
+set -gx OPEN_DESIGN_VELA_CLI_BIN (command -s vela 2>/dev/null; or echo "")
+# npm-global: usa fish_add_path em vez de set -Ux (evita commit universal lento na inicialização)
+fish_add_path --prepend --global $HOME/.npm-global/bin
