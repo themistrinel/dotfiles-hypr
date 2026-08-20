@@ -71,5 +71,15 @@ if [ -f "$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" ]; then
     "$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" "$current_mode"
 fi
 
-# Send notification (optional)
-# notify-send "Wallpaper Updated" "Colors generated from $(basename "$COLOR_SOURCE")"
+# Update the default wallpaper for the current theme in theme-schedule.conf
+THEME_CONF="$HOME/.dotfiles/hypr/scripts/theme-schedule.conf"
+OVERRIDE_FILE="$HOME/.cache/wal/.theme-override"
+if [ -f "$THEME_CONF" ]; then
+    current_theme=$(cat "$OVERRIDE_FILE" 2>/dev/null || echo "")
+    wallpaper_name=$(basename "$WALLPAPER")
+    if [ "$current_theme" = "light" ]; then
+        sed -i "s|^LIGHT_WALLPAPER=.*|LIGHT_WALLPAPER=\"$wallpaper_name\"|" "$THEME_CONF"
+    elif [ "$current_theme" = "dark" ]; then
+        sed -i "s|^DARK_WALLPAPER=.*|DARK_WALLPAPER=\"$wallpaper_name\"|" "$THEME_CONF"
+    fi
+fi
