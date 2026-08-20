@@ -216,6 +216,7 @@ Se você já tem o sistema configurado e quer apenas adicionar mais temas:
 | `Super + Shift + R`     | **Reload Configurations**          |
 | `Super + Esc`           | Restart Waybar                    |
 | `Super + Shift + S`     | Screenshot                        |
+| `Super + Ctrl + R`      | Gravar área selecionada (wf-recorder) |
 | `Super + Shift + O`     | OCR Rápido (Tesseract) ⚡          |
 | `Super + Ctrl + O`      | OCR Preciso (EasyOCR daemon) 🎯   |
 | `Super + Alt + O`       | Liga/Desliga daemon EasyOCR       |
