@@ -1,0 +1,177 @@
+/* ═══════════════════════════════════════════════════════════════
+   Glass Waybar — static fallback
+   Normally generated dynamically by glass-theme.sh from pywal colors
+   ═══════════════════════════════════════════════════════════════ */
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: JetBrainsMono Nerd Font, monospace;
+    font-weight: bold;
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(15, 15, 25, 0.30);
+    color: #e0e0e8;
+}
+
+/* ── Workspaces ─────────────────────────────────────────── */
+
+#workspaces button {
+    padding: 5px;
+    color: rgba(160, 165, 185, 0.60);
+    margin-right: 5px;
+}
+
+#workspaces button.active {
+    color: #e0e0e8;
+}
+
+#workspaces button.focused {
+    color: #e0e0e8;
+    background: rgba(50, 58, 203, 0.45);
+    border-radius: 10px;
+}
+
+#workspaces button.urgent {
+    color: #fff;
+    background: rgba(240, 100, 100, 0.55);
+    border-radius: 10px;
+}
+
+#workspaces button:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e0e0e8;
+    border-radius: 10px;
+}
+
+/* ── Modules ────────────────────────────────────────────── */
+
+#custom-window,
+#clock,
+#battery,
+#pulseaudio,
+#network,
+#cpu,
+#memory,
+#workspaces,
+#tray,
+#backlight {
+    background: rgba(15, 15, 25, 0.35);
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+}
+
+#backlight {
+    border-radius: 10px 0px 0px 10px;
+}
+
+#tray {
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+#workspaces {
+    background: rgba(15, 15, 25, 0.35);
+    border-radius: 10px;
+    margin-left: 10px;
+    padding-right: 0px;
+    padding-left: 5px;
+}
+
+#cpu {
+    border-radius: 0px 10px 10px 0px;
+    margin-right: 10px;
+}
+
+#memory {
+    border-radius: 10px 0px 0px 10px;
+}
+
+#custom-window {
+    background: rgba(15, 15, 25, 0.25);
+    border-radius: 10px;
+    margin-left: 60px;
+    margin-right: 60px;
+}
+
+#clock {
+    color: #e0e0e8;
+    border-radius: 10px;
+    margin-left: 5px;
+    border-right: 0px;
+}
+
+#network {
+    color: #e0e0e8;
+    border-radius: 10px 0px 0px 10px;
+}
+
+#pulseaudio {
+    color: #e0e0e8;
+    border-left: 0px;
+    border-right: 0px;
+}
+
+#pulseaudio.microphone {
+    color: #e0e0e8;
+    border-radius: 0px 10px 10px 0px;
+    border-left: 0px;
+    border-right: 0px;
+    margin-right: 5px;
+}
+
+#battery {
+    color: #e0e0e8;
+    border-radius: 0px 10px 10px 0px;
+    margin-right: 10px;
+}
+
+#custom-recording {
+    color: #f38ba8;
+    background: rgba(15, 15, 25, 0.35);
+    border-radius: 10px;
+    padding: 0 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+#custom-moon {
+    color: #e0e0e8;
+    background: rgba(15, 15, 25, 0.35);
+    border-radius: 10px;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+#custom-pomodoro {
+    background: rgba(15, 15, 25, 0.25);
+    color: rgba(180, 170, 160, 0.75);
+    border-radius: 10px;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+#custom-pomodoro.work {
+    background: rgba(15, 15, 25, 0.25);
+    color: rgba(231, 158, 176, 0.85);
+}
+
+#custom-pomodoro.break {
+    background: rgba(15, 15, 25, 0.25);
+    color: rgba(149, 171, 228, 0.85);
+}
+
+#custom-pomodoro.paused {
+    background: rgba(15, 15, 25, 0.25);
+    color: rgba(139, 142, 145, 0.65);
+}

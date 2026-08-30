@@ -97,6 +97,9 @@ hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(HOME .. "/.dotfiles/hypr/scri
 hl.bind(mainMod .. " + Escape",    hl.dsp.exec_cmd(HOME .. "/.config/hypr/scripts/zen-mode.sh"))
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(HOME .. "/.config/hypr/reload.sh"))
 
+-- Glass theme toggle
+hl.bind(mainMod .. " + G",        hl.dsp.exec_cmd(HOME .. "/.dotfiles/hypr/scripts/glass-theme.sh toggle"))
+
 -- GTK theme
 hl.bind(mainMod .. " + CTRL + G",  hl.dsp.exec_cmd(HOME .. "/.config/hypr/scripts/apply-gtk-theme.sh"))
 

@@ -1,0 +1,93 @@
+/* ═══════════════════════════════════════════════════════════════
+   Glass Rofi — translucent glass surface
+   Normally generated dynamically by glass-theme.sh from pywal colors
+   ═══════════════════════════════════════════════════════════════ */
+
+configuration {
+    modi: "drun,run,window";
+    show-icons: true;
+    icon-theme: "Papirus";
+    display-drun: "Apps";
+    display-run: "Run";
+    display-window: "Windows";
+    drun-display-format: "{name}";
+    font: "JetBrains Mono Nerd Font 10";
+}
+
+* {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+    background-color: transparent;
+    text-color: #e0e0e8;
+}
+
+window {
+    transparency: "real";
+    background-color: rgba(15, 15, 25, 0.55);
+    border: 1px solid rgba(100, 110, 180, 0.35);
+    border-radius: 12px;
+    width: 600px;
+    padding: 0;
+}
+
+mainbox {
+    background-color: transparent;
+    padding: 10px;
+}
+
+inputbar {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 10px;
+    spacing: 10px;
+    children: [ prompt, entry ];
+}
+
+prompt {
+    text-color: rgba(137, 180, 250, 0.9);
+}
+
+entry {
+    text-color: #e0e0e8;
+    placeholder: "Search...";
+    placeholder-color: rgba(160, 165, 185, 0.5);
+}
+
+listview {
+    background-color: transparent;
+    columns: 1;
+    lines: 8;
+    spacing: 3px;
+    padding: 8px 0 0 0;
+}
+
+element {
+    background-color: transparent;
+    text-color: #e0e0e8;
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+element normal.normal {
+    background-color: transparent;
+}
+
+element alternate.normal {
+    background-color: transparent;
+}
+
+element selected.normal {
+    background-color: rgba(137, 180, 250, 0.30);
+    text-color: #ffffff;
+}
+
+element-icon {
+    size: 24px;
+    padding: 0 10px 0 0;
+}
+
+element-text {
+    text-color: inherit;
+}
