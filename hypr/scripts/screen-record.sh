@@ -27,7 +27,7 @@ if [ -f "$PID_FILE" ]; then
 
     VIDEO_FILE="${BASE_FILE}_video.mkv"
     MIC_FILE="${BASE_FILE}_mic.wav"
-    FINAL_FILE="${BASE_FILE}.mkv"
+    FINAL_FILE="${BASE_FILE}.mp4"
 
     if [ -f "$VIDEO_FILE" ] && [ -s "$MIC_FILE" ]; then
         # Mescla vídeo+sistema com mic em faixas separadas
@@ -35,7 +35,7 @@ if [ -f "$PID_FILE" ]; then
             -map 0:v -map 0:a -map 1:a \
             -metadata:s:a:0 title="Sistema" \
             -metadata:s:a:1 title="Microfone" \
-            -c copy "$FINAL_FILE" 2>>"$LOG_FILE"
+            -c:v copy -c:a aac "$FINAL_FILE" 2>>"$LOG_FILE"
 
         if [ -f "$FINAL_FILE" ]; then
             rm -f "$VIDEO_FILE" "$MIC_FILE"
@@ -45,7 +45,7 @@ if [ -f "$PID_FILE" ]; then
             notify-send "Screen Recording" "✗ Erro ao mesclar!\nLog: $LOG_FILE" -u critical -t 8000
         fi
     elif [ -f "$VIDEO_FILE" ]; then
-        mv "$VIDEO_FILE" "$FINAL_FILE"
+        ffmpeg -i "$VIDEO_FILE" -c:v copy -c:a aac "$FINAL_FILE" 2>>"$LOG_FILE" && rm -f "$VIDEO_FILE"
         SIZE=$(du -h "$FINAL_FILE" | cut -f1)
         notify-send "Screen Recording" "✓ Salvo (sem mic)\n$FINAL_FILE\nTamanho: $SIZE" -t 8000
     else
