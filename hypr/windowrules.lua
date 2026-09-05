@@ -95,25 +95,25 @@ hl.window_rule({ name = "no-shadow-tiled", match = { float = false }, no_shadow 
 hl.window_rule({ name = "float-waypaper", match = { class = "^(waypaper)$" }, float = true })
 hl.window_rule({ name = "size-pwaypaper", match = { class = "^(pwaypaper)$" }, size = "45% 45%" })
 
--- Kitty transparency
-hl.window_rule({
-  name    = "kitty-opacity",
-  match   = { class = "^(kitty)$" },
-  opacity = "0.8 0.8",
-})
+-- Kitty transparency - removida, usando background_opacity do kitty.conf
+-- hl.window_rule({
+--   name    = "kitty-opacity",
+--   match   = { class = "^(kitty)$" },
+--   opacity = "0.8 0.8",
+-- })
 
 --------------------------
 ---- WORKSPACE RULES ----
 --------------------------
 -- See https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
 
--- Smart gaps / no border when only one window
-hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
-hl.workspace_rule({ workspace = "f[1]",   gaps_out = 0, gaps_in = 0 })
-hl.window_rule({ match = { float = false, workspace = "w[tv1]" }, border_size = 0 })
-hl.window_rule({ match = { float = false, workspace = "w[tv1]" }, rounding = 0 })
-hl.window_rule({ match = { float = false, workspace = "f[1]" },   border_size = 0 })
-hl.window_rule({ match = { float = false, workspace = "f[1]" },   rounding = 0 })
+-- Smart gaps / no border when only one window - REMOVIDO para ter bordas sempre
+-- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
+-- hl.workspace_rule({ workspace = "f[1]",   gaps_out = 0, gaps_in = 0 })
+-- hl.window_rule({ match = { float = false, workspace = "w[tv1]" }, border_size = 0 })
+-- hl.window_rule({ match = { float = false, workspace = "w[tv1]" }, rounding = 0 })
+-- hl.window_rule({ match = { float = false, workspace = "f[1]" },   border_size = 0 })
+-- hl.window_rule({ match = { float = false, workspace = "f[1]" },   rounding = 0 })
 
 -- Named workspaces
 hl.workspace_rule({ workspace = "1", default_name = "一" })
