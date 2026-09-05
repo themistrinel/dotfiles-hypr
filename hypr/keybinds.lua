@@ -7,8 +7,8 @@ local HOME      = os.getenv("HOME")
 local mainMod   = "SUPER"
 
 -- Programs
-local terminal  = "foot"
--- local terminal = "kitty"
+local terminal  = "kitty"
+-- local terminal = "foot"
 local wezterm   = "wezterm"
 local browser   = "firefox"
 local fileManager = "thunar"
