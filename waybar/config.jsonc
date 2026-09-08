@@ -5,7 +5,7 @@
     "exclusive": true,
     "passthrough": false,
     "gtk-layer-shell": true,
-    "height": 0,
+    "height": 28,
     "modules-left": [
         "clock",
         "custom/moon",
@@ -169,6 +169,7 @@
     "custom/recording": {
         "format": "{}",
         "exec": "[ -f /tmp/screen-record.pid ] && kill -0 $(cat /tmp/screen-record.pid) 2>/dev/null && echo ' REC' || echo ''",
+        "exec-if": "[ -f /tmp/screen-record.pid ]",
         "interval": 1,
         "on-click": "~/.config/hypr/scripts/screen-record.sh",
         "tooltip": true,
