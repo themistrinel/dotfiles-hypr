@@ -61,14 +61,31 @@ if command -v wal >/dev/null 2>&1; then
 fi
 
 # Reload configurations
-hyprctl reload
 killall -SIGUSR1 kitty 2>/dev/null
 killall -SIGUSR1 wezterm 2>/dev/null
 
-# Update Waybar theme (respects current fixed/pywal mode)
-if [ -f "$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" ]; then
-    current_mode=$("$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" current)
-    "$HOME/.dotfiles/hypr/scripts/waybar-theme-toggle.sh" "$current_mode"
+GLASS_STATE="$HOME/.cache/.glass-theme"
+GLASS_SCRIPT="$HOME/.dotfiles/hypr/scripts/glass-theme.sh"
+
+if [ -f "$GLASS_STATE" ] && [ -x "$GLASS_SCRIPT" ]; then
+    # Se o modo Glass estiver ativo, recalcula o tema Glass com as cores do novo wallpaper
+    "$GLASS_SCRIPT" refresh
+else
+    # Reload configurations padrão
+    hyprctl reload
+
+    # Aplica o CSS gerado pelo pywal diretamente no waybar
+    WAYBAR_STYLE="$HOME/.config/waybar/style.css"
+    WAL_CSS="$HOME/.cache/wal/colors-waybar.css"
+    if [ -f "$WAL_CSS" ]; then
+        cp "$WAL_CSS" "$WAYBAR_STYLE"
+    fi
+
+    # Reinicia o waybar
+    pkill waybar 2>/dev/null
+    sleep 0.3
+    waybar &>/dev/null &
+    disown
 fi
 
 # Update the default wallpaper for the current theme in theme-schedule.conf

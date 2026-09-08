@@ -41,8 +41,14 @@ generate_waybar_glass() {
 
     local bg_rgb; bg_rgb=$(hex_to_rgb "${C[0]}")
     local fg="${C[7]}"
+    local fg_rgb; fg_rgb=$(hex_to_rgb "${C[7]}")
     local c1="${C[1]}"
     local c4="${C[4]}"
+    local c4_rgb; c4_rgb=$(hex_to_rgb "${C[4]}")
+    local c5="${C[5]}"
+    local c5_rgb; c5_rgb=$(hex_to_rgb "${C[5]}")
+    local c6="${C[6]}"
+    local c6_rgb; c6_rgb=$(hex_to_rgb "${C[6]}")
     local c8="${C[8]}"
 
     cat > "$DOTFILES/waybar/style-glass.css" << CSS
@@ -53,49 +59,81 @@ generate_waybar_glass() {
 
 * {
     border: none;
+    box-shadow: none;
     border-radius: 0;
     font-family: JetBrainsMono Nerd Font, monospace;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
     min-height: 0;
 }
 
-window#waybar {
-    background: rgba($bg_rgb, 0.30);
+window#waybar,
+window#waybar > box,
+.modules-left,
+.modules-center,
+.modules-right {
+    background-color: rgba(0, 0, 0, 0);
+    background: transparent;
+    background-image: none;
+    border: none;
+    box-shadow: none;
     color: $fg;
 }
 
 /* ── Workspaces ─────────────────────────────────────────── */
 
+#workspaces {
+    background: rgba($bg_rgb, 0.42);
+    border: none;
+    box-shadow: none;
+    border-radius: 10px;
+    margin: 2px 4px;
+    padding: 2px 3px;
+}
+
 #workspaces button {
-    padding: 5px;
-    color: rgba(160, 165, 185, 0.60);
-    margin-right: 5px;
+    padding: 1px 7px;
+    color: rgba($fg_rgb, 0.75);
+    margin: 0 1px;
+    border: 1px solid transparent;
+    box-shadow: none;
+    border-radius: 7px;
+    background: transparent;
 }
 
 #workspaces button.active {
-    color: $fg;
+    color: #ffffff;
+    background: rgba($c6_rgb, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    box-shadow: none;
+    border-radius: 7px;
 }
 
 #workspaces button.focused {
-    color: $fg;
-    background: rgba($bg_rgb, 0.45);
-    border-radius: 10px;
+    color: #ffffff;
+    background: rgba($c6_rgb, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    box-shadow: none;
+    border-radius: 7px;
 }
 
 #workspaces button.urgent {
     color: #fff;
-    background: rgba(240, 100, 100, 0.55);
-    border-radius: 10px;
+    background: rgba(240, 100, 100, 0.70);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: none;
+    border-radius: 7px;
 }
 
 #workspaces button:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: $fg;
-    border-radius: 10px;
+    background: rgba($fg_rgb, 0.22);
+    color: #ffffff;
+    border: 1px solid rgba($fg_rgb, 0.35);
+    box-shadow: none;
+    border-radius: 7px;
 }
 
-/* ── Modules ────────────────────────────────────────────── */
+/* ── Modules Flutuantes (Ilhas) ──────────────────────────── */
 
 #custom-window,
 #clock,
@@ -104,124 +142,86 @@ window#waybar {
 #network,
 #cpu,
 #memory,
-#workspaces,
 #tray,
-#backlight {
-    background: rgba($bg_rgb, 0.35);
-    padding: 0px 10px;
-    margin: 3px 0px;
-    margin-top: 5px;
-}
-
-#backlight {
-    border-radius: 10px 0px 0px 10px;
-}
-
-#tray {
+#backlight,
+#custom-moon,
+#custom-pomodoro,
+#custom-recording {
+    background: rgba($bg_rgb, 0.42);
+    border: none;
+    box-shadow: none;
     border-radius: 10px;
-    margin-right: 10px;
+    padding: 1px 10px;
 }
 
-#workspaces {
-    background: rgba($bg_rgb, 0.35);
-    border-radius: 10px;
-    margin-left: 10px;
-    padding-right: 0px;
-    padding-left: 5px;
-}
-
-#cpu {
-    border-radius: 0px 10px 10px 0px;
-    margin-right: 10px;
-}
-
-#memory {
-    border-radius: 10px 0px 0px 10px;
-}
-
-#custom-window {
-    background: rgba($bg_rgb, 0.25);
-    border-radius: 10px;
-    margin-left: 60px;
-    margin-right: 60px;
-}
+/* ── Ilhas Individuais ──────────────────────────────────── */
 
 #clock {
     color: $fg;
     border-radius: 10px;
-    margin-left: 5px;
-    border-right: 0px;
-}
-
-#network {
-    color: $fg;
-    border-radius: 10px 0px 0px 10px;
-}
-
-#pulseaudio {
-    color: $fg;
-    border-left: 0px;
-    border-right: 0px;
-}
-
-#pulseaudio.microphone {
-    color: $fg;
-    border-radius: 0px 10px 10px 0px;
-    border-left: 0px;
-    border-right: 0px;
-    margin-right: 5px;
-}
-
-#battery {
-    color: $fg;
-    border-radius: 0px 10px 10px 0px;
-    margin-right: 10px;
-}
-
-#custom-recording {
-    color: $c1;
-    background: rgba($bg_rgb, 0.35);
-    border-radius: 10px;
-    padding: 0 10px;
-    margin: 3px 0px;
-    margin-top: 5px;
-    margin-right: 5px;
-    font-size: 14px;
+    margin: 2px 4px;
 }
 
 #custom-moon {
     color: $fg;
-    background: rgba($bg_rgb, 0.35);
     border-radius: 10px;
-    padding: 0px 10px;
-    margin: 3px 0px;
-    margin-top: 5px;
-    margin-left: 5px;
+    margin: 2px 4px;
 }
 
 #custom-pomodoro {
-    background: rgba($bg_rgb, 0.25);
-    color: rgba(180, 170, 160, 0.75);
+    color: rgba(180, 170, 160, 0.85);
     border-radius: 10px;
-    padding: 0px 10px;
-    margin: 3px 0px;
-    margin-top: 5px;
-    margin-left: 5px;
+    margin: 2px 4px;
 }
 
 #custom-pomodoro.work {
-    background: rgba($bg_rgb, 0.25);
-    color: rgba(231, 158, 176, 0.85);
+    color: rgba(231, 158, 176, 0.95);
 }
 
 #custom-pomodoro.break {
-    background: rgba($bg_rgb, 0.25);
-    color: rgba(149, 171, 228, 0.85);
+    color: rgba(149, 171, 228, 0.95);
 }
 
 #custom-pomodoro.paused {
-    background: rgba($bg_rgb, 0.25);
-    color: rgba(139, 142, 145, 0.65);
+    color: rgba(139, 142, 145, 0.75);
+}
+
+#custom-window {
+    border-radius: 10px;
+    margin: 2px 4px;
+}
+
+#tray {
+    border-radius: 10px;
+    margin: 2px 4px;
+}
+
+#custom-recording {
+    color: $c1;
+    border-radius: 10px;
+    margin: 2px 4px;
+    font-size: 13px;
+}
+
+/* ── Grupo de Métricas (Direita) ────────────────────────── */
+
+#memory {
+    border-radius: 10px 0px 0px 10px;
+    margin: 2px 0px 2px 4px;
+}
+
+#cpu,
+#network,
+#battery,
+#backlight,
+#pulseaudio {
+    border-radius: 0;
+    margin: 2px 0px;
+}
+
+#pulseaudio.microphone {
+    border-radius: 0px 10px 10px 0px;
+    margin: 2px 8px 2px 0px;
 }
 CSS
 }
@@ -258,76 +258,100 @@ configuration {
     padding: 0;
     spacing: 0;
     background-color: transparent;
-    text-color: $fg;
+    text-color: #e0e0e5;
 }
 
 window {
     transparency: "real";
     background-color: rgba($bg_rgb, 0.55);
-    border: 1px solid rgba($sel_rgb, 0.35);
-    border-radius: 12px;
-    width: 600px;
-    padding: 0;
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.25);
+    border-radius: 14px;
+    width: 620px;
+    padding: 12px;
 }
 
 mainbox {
     background-color: transparent;
-    padding: 10px;
+    padding: 0;
+    spacing: 10px;
+    children: [ inputbar, listview ];
 }
 
 inputbar {
-    background-color: rgba(255, 255, 255, 0.06);
-    border-radius: 8px;
-    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 8px 12px;
     spacing: 10px;
     children: [ prompt, entry ];
 }
 
 prompt {
-    text-color: rgba($sel_rgb, 0.9);
+    text-color: rgba($sel_rgb, 0.95);
 }
 
 entry {
-    text-color: $fg;
+    text-color: #ffffff;
     placeholder: "Search...";
-    placeholder-color: rgba(160, 165, 185, 0.5);
+    placeholder-color: rgba(180, 185, 205, 0.50);
 }
 
 listview {
     background-color: transparent;
     columns: 1;
     lines: 8;
-    spacing: 3px;
-    padding: 8px 0 0 0;
+    spacing: 4px;
+    padding: 6px 0 0 0;
 }
 
 element {
     background-color: transparent;
-    text-color: $fg;
-    border-radius: 6px;
-    padding: 8px 10px;
-}
-
-element normal.normal {
-    background-color: transparent;
-}
-
-element alternate.normal {
-    background-color: transparent;
-}
-
-element selected.normal {
-    background-color: rgba($sel_rgb, 0.30);
-    text-color: #ffffff;
+    text-color: #e0e0e5;
+    border-radius: 8px;
+    padding: 8px 12px;
+    spacing: 12px;
 }
 
 element-icon {
     size: 24px;
-    padding: 0 10px 0 0;
+    background-color: transparent;
 }
 
 element-text {
+    background-color: transparent;
     text-color: inherit;
+    vertical-align: 0.5;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color: #e0e0e5;
+}
+
+element alternate.normal {
+    background-color: transparent;
+    text-color: #e0e0e5;
+}
+
+element selected.normal {
+    background-color: rgba($sel_rgb, 0.45);
+    text-color: #ffffff;
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.30);
+    border-radius: 8px;
+}
+
+element normal.active,
+element alternate.active {
+    background-color: transparent;
+    text-color: #ffffff;
+}
+
+element selected.active {
+    background-color: rgba($sel_rgb, 0.55);
+    text-color: #ffffff;
 }
 RASI
 }
@@ -389,78 +413,77 @@ apply_glass() {
     cp "$DOTFILES/waybar/style.css" "$BACKUP_DIR/style.css" 2>/dev/null || true
     cp "$DOTFILES/rofi/config.rasi" "$BACKUP_DIR/config.rasi" 2>/dev/null || true
 
+    # State flag — define ANTES do reload para o hyprland.lua detectar
+    echo "on" > "$STATE"
+
     # Generate all Glass configs from current pywal colors
     generate_waybar_glass
     generate_rofi_glass
     generate_foot_glass
 
-    # ── Hyprland: glass decoration ──
-    hyprctl keyword decoration:active_opacity 0.78 >/dev/null
-    hyprctl keyword decoration:inactive_opacity 0.65 >/dev/null
-    hyprctl keyword decoration:blur:size 12 >/dev/null
-    hyprctl keyword decoration:blur:passes 4 >/dev/null
-    hyprctl keyword decoration:blur:noise "0.02" >/dev/null
-    hyprctl keyword decoration:blur:contrast "0.9" >/dev/null
-    hyprctl keyword decoration:blur:brightness "0.85" >/dev/null
-    hyprctl keyword decoration:blur:vibrancy "0.2" >/dev/null
-    hyprctl keyword decoration:blur:vibrancy_darkness "0.5" >/dev/null
-    hyprctl keyword decoration:shadow:enabled true >/dev/null
-    hyprctl keyword decoration:shadow:range 8 >/dev/null
-    hyprctl keyword decoration:shadow:render_power 4 >/dev/null
-    hyprctl keyword decoration:shadow:color "rgba(0,0,0,0.4)" >/dev/null
-    hyprctl keyword general:border_size 1 >/dev/null
-
     # ── Waybar: apply Glass CSS ──
     cp "$DOTFILES/waybar/style-glass.css" "$DOTFILES/waybar/style.css"
+    cp "$DOTFILES/waybar/style-glass.css" "$HOME/.config/waybar/style.css" 2>/dev/null || true
     echo "glass" > "$DOTFILES/waybar/.theme-mode"
-    pkill waybar 2>/dev/null || true
-    sleep 0.3
-    waybar &>/dev/null &
-    disown
+    pkill -x waybar 2>/dev/null || true
+    sleep 0.5
+    setsid waybar >/dev/null 2>&1 &
 
     # ── Foot: apply Glass config ──
     cp "$DOTFILES/foot/foot-glass.ini" "$DOTFILES/foot/foot.ini"
     cp "$DOTFILES/foot/foot.ini" "$HOME/.config/foot/foot.ini" 2>/dev/null || true
 
-    # ── Kitty: apply Glass opacity ──
-    echo "# Glass overrides — auto-generated by glass-theme.sh
-background_opacity 0.70
-" > "$DOTFILES/kitty/glass.conf"
-
     # ── Rofi: apply Glass theme ──
     cp "$DOTFILES/rofi/glass.rasi" "$DOTFILES/rofi/config.rasi"
     cp "$DOTFILES/rofi/config.rasi" "$HOME/.config/rofi/config.rasi" 2>/dev/null || true
 
-    # ── State ──
-    echo "on" > "$STATE"
-    notify-send "🔮 Glass" "Glass mode enabled" -t 2000 2>/dev/null || true
+    # ── Hyprland: recarrega a configuração nativa com suporte completo a Glass ──
+    hyprctl reload
+
+    notify-send "🔮 Glass" "Tema Glass ativado com as cores do wallpaper" -t 2000 2>/dev/null || true
     echo "[glass] Glass mode enabled"
+}
+
+# ── Refresh Glass (quando o wallpaper/cores mudam) ──────────────
+
+refresh_glass() {
+    if [ ! -f "$STATE" ]; then
+        return 0
+    fi
+    read_wal_colors || return 1
+
+    generate_waybar_glass
+    generate_rofi_glass
+    generate_foot_glass
+
+    cp "$DOTFILES/waybar/style-glass.css" "$DOTFILES/waybar/style.css"
+    cp "$DOTFILES/waybar/style-glass.css" "$HOME/.config/waybar/style.css" 2>/dev/null || true
+    pkill -x waybar 2>/dev/null || true
+    sleep 0.5
+    setsid waybar >/dev/null 2>&1 &
+
+    cp "$DOTFILES/rofi/glass.rasi" "$DOTFILES/rofi/config.rasi"
+    cp "$DOTFILES/rofi/config.rasi" "$HOME/.config/rofi/config.rasi" 2>/dev/null || true
+
+    hyprctl reload
+    echo "[glass] Glass theme refreshed with new wallpaper colors"
 }
 
 # ── Remove Glass ───────────────────────────────────────────────
 
 remove_glass() {
-    # ── Hyprland: restore defaults ──
-    hyprctl keyword decoration:active_opacity 1.0 >/dev/null
-    hyprctl keyword decoration:inactive_opacity 1.0 >/dev/null
-    hyprctl keyword decoration:blur:size 3 >/dev/null
-    hyprctl keyword decoration:blur:passes 1 >/dev/null
-    hyprctl keyword decoration:blur:noise "0.02" >/dev/null
-    hyprctl keyword decoration:blur:contrast "0.9" >/dev/null
-    hyprctl keyword decoration:blur:brightness "0.85" >/dev/null
-    hyprctl keyword decoration:blur:vibrancy "0.18" >/dev/null
-    hyprctl keyword decoration:blur:vibrancy_darkness "0.5" >/dev/null
-    hyprctl keyword decoration:shadow:enabled true >/dev/null
-    hyprctl keyword decoration:shadow:range 4 >/dev/null
-    hyprctl keyword decoration:shadow:render_power 3 >/dev/null
-    hyprctl keyword decoration:shadow:color "rgba(1a1a1aee)" >/dev/null
-    hyprctl keyword general:border_size 2 >/dev/null
+    rm -f "$STATE"
 
     # ── Restore Waybar ──
-    if [ -f "$BACKUP_DIR/style.css" ]; then
+    WAL_CSS="$HOME/.cache/wal/colors-waybar.css"
+    if [ -f "$WAL_CSS" ]; then
+        cp "$WAL_CSS" "$DOTFILES/waybar/style.css"
+        cp "$WAL_CSS" "$HOME/.config/waybar/style.css" 2>/dev/null || true
+    elif [ -f "$BACKUP_DIR/style.css" ]; then
         cp "$BACKUP_DIR/style.css" "$DOTFILES/waybar/style.css"
+        cp "$BACKUP_DIR/style.css" "$HOME/.config/waybar/style.css" 2>/dev/null || true
     fi
-    echo "fixed" > "$DOTFILES/waybar/.theme-mode"
+    echo "pywal" > "$DOTFILES/waybar/.theme-mode"
     pkill waybar 2>/dev/null || true
     sleep 0.3
     waybar &>/dev/null &
@@ -483,7 +506,11 @@ remove_glass() {
 
     # ── State ──
     rm -f "$STATE"
-    notify-send "🔮 Glass" "Glass mode disabled" -t 2000 2>/dev/null || true
+
+    # ── Hyprland: recarrega para restaurar o look padrão ──
+    hyprctl reload
+
+    notify-send "🔮 Glass" "Tema Glass desativado" -t 2000 2>/dev/null || true
     echo "[glass] Glass mode disabled"
 }
 
@@ -495,6 +522,9 @@ case "${1:-toggle}" in
         ;;
     off)
         remove_glass
+        ;;
+    refresh)
+        refresh_glass
         ;;
     toggle)
         if [ -f "$STATE" ]; then
@@ -511,7 +541,7 @@ case "${1:-toggle}" in
         fi
         ;;
     *)
-        echo "Usage: glass-theme.sh [on|off|toggle|status]"
+        echo "Usage: glass-theme.sh [on|off|refresh|toggle|status]"
         exit 1
         ;;
 esac
