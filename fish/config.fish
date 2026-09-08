@@ -34,8 +34,7 @@ if status is-interactive
     # Abbrs
     abbr py 'python3'
     abbr lg 'lazygit'
-    abbr gd 'git diff'
-    abbr ga 'git add .'
+    # ga/gd/gco/gsw/gbd now come from forgit (fzf pickers)
     abbr gc 'git commit -am'
     abbr gl 'git log'
     abbr gs 'git status'
@@ -43,12 +42,14 @@ if status is-interactive
     abbr gsp 'git stash pop'
     abbr gp 'git push'
     abbr gpl 'git pull'
-    abbr gsw 'git switch'
     abbr gsm 'git switch main'
     abbr gb 'git branch'
-    abbr gbd 'git branch -d'
-    abbr gco 'git checkout'
     abbr gsh 'git show'
+
+    # forgit: fzf-powered interactive git (ga/gd/glo/gco/gsw/gbd/gclean...)
+    set forgit_stash_push gstp  # avoid clashing with the gsp (stash pop) abbr
+    set -x FORGIT_COPY_CMD wl-copy  # Wayland clipboard for ctrl-y
+    test -f ~/.forgit/conf.d/forgit.plugin.fish; and source ~/.forgit/conf.d/forgit.plugin.fish
 
     abbr l 'ls'
     abbr ll 'ls -l'
@@ -73,8 +74,8 @@ end
 # Added by LM Studio CLI tool (lms)
 set -gx PATH $PATH /home/abyssal/.lmstudio/bin
 
-# OpenRouter
-set -gx OPENROUTER_API_KEY "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"
+# Secrets (API keys) — arquivo separado, não commitar
+source ~/.config/fish/secrets.fish
 
 # pnpm
 set -gx PNPM_HOME "/home/abyssal/.local/share/pnpm"

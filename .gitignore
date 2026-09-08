@@ -4,3 +4,4 @@ fish/secrets.fish
 # Build artifacts
 pomodoro-tasks/build/
 dotfiles-manager/__pycache__/
+.freebuff/
