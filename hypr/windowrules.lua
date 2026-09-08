@@ -3,18 +3,32 @@
 --------------------------
 -- See https://wiki.hypr.land/Configuring/Basics/Window-Rules/
 
--- Global slight transparency
+local is_glass = _G.is_glass or false
+
+-- Global transparency: no modo glass permite translucência real
 hl.window_rule({
   name    = "global-transparency",
   match   = { class = ".*" },
-  opacity = "0.98 0.95",
+  opacity = is_glass and "0.88 0.78" or "0.98 0.95",
 })
 
--- Helium Browser — no extra transparency
+-- Helium Browser — no extra transparency normal, translúcido elegante no glass
 hl.window_rule({
   name    = "helium-opacity",
   match   = { class = "^[Hh]elium$" },
-  opacity = "1.0 1.0",
+  opacity = is_glass and "0.95 0.88" or "1.0 1.0",
+})
+
+-- IDEs e Editores de Código — Transparência acrílica balanceada mantendo nitidez e brilho de texto
+hl.window_rule({
+  name    = "antigravity-opacity",
+  match   = { class = "^([Aa]ntigravity.*)$" },
+  opacity = is_glass and "0.96 override 0.90 override" or "0.98 0.95",
+})
+hl.window_rule({
+  name    = "code-opacity",
+  match   = { class = "^(code|Code|VSCodium|vscodium|cursor)$" },
+  opacity = is_glass and "0.96 override 0.90 override" or "0.98 0.95",
 })
 
 -- Disable blur for XWayland windows
@@ -129,7 +143,8 @@ hl.workspace_rule({ workspace = "special:special", gaps_out = 30 })
 ---- LAYER RULES ----
 --------------------------
 
-hl.layer_rule({ name = "xray-all",        match = { namespace = ".*" },             xray = true })
+-- Desativa xray global para que o blur mostre as janelas reais atrás das camadas glass
+-- hl.layer_rule({ name = "xray-all",        match = { namespace = ".*" },             xray = true })
 hl.layer_rule({ name = "no-anim-walker",  match = { namespace = "walker" },         no_anim = true })
 hl.layer_rule({ name = "no-anim-sel",     match = { namespace = "selection" },      no_anim = true })
 hl.layer_rule({ name = "no-anim-over",    match = { namespace = "overview" },       no_anim = true })
@@ -139,6 +154,8 @@ hl.layer_rule({ name = "no-anim-osk",     match = { namespace = "osk" },        
 hl.layer_rule({ name = "no-anim-picker",  match = { namespace = "hyprpicker" },     no_anim = true })
 hl.layer_rule({ name = "no-anim-noanim",  match = { namespace = "noanim" },         no_anim = true })
 
+hl.layer_rule({ name = "blur-waybar",     match = { namespace = "waybar" },         blur = true, ignore_alpha = 0.2, xray = false })
+hl.layer_rule({ name = "blur-rofi",       match = { namespace = "rofi" },           blur = true, ignore_alpha = 0.1, xray = false })
 hl.layer_rule({ name = "blur-gtk",        match = { namespace = "gtk-layer-shell" }, blur = true, ignore_alpha = 0 })
 hl.layer_rule({ name = "blur-launcher",   match = { namespace = "launcher" },        blur = true, ignore_alpha = 0.5 })
 hl.layer_rule({ name = "blur-notif",      match = { namespace = "notifications" },   blur = true, ignore_alpha = 0.69 })

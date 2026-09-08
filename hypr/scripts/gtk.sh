@@ -67,10 +67,10 @@ gtk-cursor-theme-size=$CURSOR_SIZE
 gtk-font-name=$FONT_NAME
 EOF
 
-# Update GTK_THEME environment variable in hyprland.conf
-HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
-if [ -f "$HYPR_CONF" ]; then
-    sed -i "s/^env = GTK_THEME,.*/env = GTK_THEME,$GTK_THEME/" "$HYPR_CONF"
+# Update GTK_THEME environment variable in hyprland.lua
+HYPR_LUA="$HOME/.config/hypr/hyprland.lua"
+if [ -f "$HYPR_LUA" ]; then
+    sed -i "s/hl\.env(\"GTK_THEME\",.*/hl.env(\"GTK_THEME\",             \"$GTK_THEME\")/" "$HYPR_LUA"
 fi
 
 # Apply cursor theme to Hyprland specifically

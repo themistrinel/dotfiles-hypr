@@ -1,15 +1,50 @@
 -- Hyprland config — migrated to Lua (0.55+)
 -- https://wiki.hypr.land/Configuring/Start/
 
--- Load pywal colors (gerado automaticamente pelo pywal)
-local ok, colors = pcall(require, "colors-hyprland")
-if not ok then
+-- Load pywal colors (gerado automaticamente pelo pywal em ~/.cache/wal/)
+local wal_colors_path = os.getenv("HOME") .. "/.cache/wal/colors-hyprland.lua"
+local ok, colors = pcall(dofile, wal_colors_path)
+if not ok or type(colors) ~= "table" then
   -- Fallback se o pywal ainda não rodou
   colors = {
     active_border_col_1 = "rgba(33ccffee)",
     active_border_col_2 = "rgba(00ff99ee)",
     inactive_border_col = "rgba(595959aa)",
   }
+end
+
+-- Helper para converter "rgb(xxxxxx)" para "rgba(xxxxxxyy)"
+local function to_rgba(c, alpha_hex)
+  if not c then return "rgba(ffffff" .. alpha_hex .. ")" end
+  local hex = c:match("rgb%((%x+)%)")
+  if hex then
+    return "rgba(" .. hex .. alpha_hex .. ")"
+  end
+  return c
+end
+
+-- Verifica se o modo Glass está ativo
+local is_glass = false
+local glass_file = io.open(os.getenv("HOME") .. "/.cache/.glass-theme", "r")
+if glass_file then
+  local content = glass_file:read("*all") or ""
+  glass_file:close()
+  if content:find("on") or content:find("glass") then
+    is_glass = true
+  end
+end
+_G.is_glass = is_glass
+
+-- Bordas: no modo glass usam gradiente translúcido com cores do wallpaper
+local active_border_1, active_border_2, inactive_border
+if is_glass then
+  active_border_1 = to_rgba(colors.color4 or colors.active_border_col_1, "dd")
+  active_border_2 = to_rgba(colors.color6 or colors.active_border_col_2, "88")
+  inactive_border = to_rgba(colors.color1 or colors.inactive_border_col, "33")
+else
+  active_border_1 = colors.active_border_col_1
+  active_border_2 = colors.active_border_col_2
+  inactive_border = colors.inactive_border_col
 end
 
 -- Sub-configs
@@ -34,7 +69,7 @@ hl.env("GDK_BACKEND",              "wayland,x11")
 hl.env("XDG_CURRENT_DESKTOP",      "Hyprland")
 hl.env("XDG_SESSION_TYPE",         "wayland")
 hl.env("XDG_SESSION_DESKTOP",      "Hyprland")
-hl.env("GTK_THEME",                "Adwaita")
+hl.env("GTK_THEME",             "Adwaita-dark")
 hl.env("GTK2_RC_FILES",            os.getenv("HOME") .. "/.config/gtk-2.0/gtkrc")
 hl.env("FREETYPE_PROPERTIES",      "truetype:interpreter-version=40")
 
@@ -55,10 +90,10 @@ hl.config({
   general = {
     gaps_in      = 5,
     gaps_out     = 5,
-    border_size  = 2,
+    border_size  = is_glass and 2 or 2,
     col = {
-      active_border   = { colors = { colors.active_border_col_1, colors.active_border_col_2 }, angle = 45 },
-      inactive_border = colors.inactive_border_col,
+      active_border   = { colors = { active_border_1, active_border_2 }, angle = 45 },
+      inactive_border = inactive_border,
     },
     resize_on_border = false,
     allow_tearing    = false,
@@ -78,18 +113,24 @@ hl.config({
     rounding       = 10,
     rounding_power = 2,
     active_opacity   = 1.0,
-    inactive_opacity = 1.0,
+    inactive_opacity = is_glass and 0.90 or 1.0,
     shadow = {
       enabled      = true,
-      range        = 4,
-      render_power = 3,
-      color        = 0xee1a1a1a,
+      range        = is_glass and 12 or 4,
+      render_power = is_glass and 4 or 3,
+      color        = is_glass and 0x55000000 or 0xee1a1a1a,
     },
     blur = {
-      enabled   = true,
-      size      = 3,
-      passes    = 1,
-      vibrancy  = 0.1696,
+      enabled           = true,
+      size              = is_glass and 10 or 3,
+      passes            = is_glass and 4 or 1,
+      vibrancy          = is_glass and 0.20 or 0.1696,
+      vibrancy_darkness = 0.0,
+      noise             = 0.0,
+      contrast          = 1.0,
+      brightness        = 1.0,
+      ignore_opacity    = is_glass and true or false,
+      popups            = is_glass and true or false,
     },
   },
 })

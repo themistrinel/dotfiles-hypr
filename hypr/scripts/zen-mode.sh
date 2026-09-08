@@ -8,10 +8,12 @@ if pgrep -x "waybar" > /dev/null; then
     killall waybar
     
     # Remove borders and gaps
-    hyprctl keyword general:border_size 0
-    hyprctl keyword general:gaps_in 0
-    hyprctl keyword general:gaps_out 0
-    hyprctl keyword decoration:rounding 0
+    hyprctl eval 'hl.config({ general = { border_size = 0, gaps_in = 0, gaps_out = 0 }, decoration = { rounding = 0 } })' >/dev/null 2>&1 || {
+        hyprctl keyword general:border_size 0
+        hyprctl keyword general:gaps_in 0
+        hyprctl keyword general:gaps_out 0
+        hyprctl keyword decoration:rounding 0
+    }
     
     notify-send "Zen Mode" "Enabled" -t 1000
 else
@@ -20,10 +22,12 @@ else
     ~/.config/hypr/scripts/gtk.sh
     
     # Restore borders and gaps
-    hyprctl keyword general:border_size 2
-    hyprctl keyword general:gaps_in 5
-    hyprctl keyword general:gaps_out 5
-    hyprctl keyword decoration:rounding 10
+    hyprctl eval 'hl.config({ general = { border_size = 2, gaps_in = 5, gaps_out = 5 }, decoration = { rounding = 10 } })' >/dev/null 2>&1 || {
+        hyprctl keyword general:border_size 2
+        hyprctl keyword general:gaps_in 5
+        hyprctl keyword general:gaps_out 5
+        hyprctl keyword decoration:rounding 10
+    }
     
     notify-send "Zen Mode" "Disabled" -t 1000
 fi
