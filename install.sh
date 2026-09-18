@@ -190,6 +190,12 @@ links_hyprland() {
 
     link "$DOTFILES/hypr"       "$CONFIG_DIR/hypr"
     link "$DOTFILES/waybar"     "$CONFIG_DIR/waybar"
+
+    # Waybar IPC fix para Hyprland 0.55+ (Lua dispatch)
+    if [ -f "$DOTFILES/waybar/ipc-fix/Makefile" ]; then
+        info "Compilando Waybar Hyprland IPC fix..."
+        make -C "$DOTFILES/waybar/ipc-fix" install 2>/dev/null && ok "Waybar IPC fix instalado em ~/.local/bin/waybar" || warn "Falha ao compilar Waybar IPC fix"
+    fi
     link "$DOTFILES/kitty"      "$CONFIG_DIR/kitty"
     link "$DOTFILES/zellij"     "$CONFIG_DIR/zellij"
     link "$DOTFILES/wal"        "$CONFIG_DIR/wal"
