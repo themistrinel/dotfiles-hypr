@@ -46,21 +46,47 @@ get_current() {
     cat "$OVERRIDE_FILE" 2>/dev/null || echo "auto"
 }
 
+apply_glass() {
+    echo "glass" > "$OVERRIDE_FILE"
+    "$HOME/.dotfiles/hypr/scripts/glass-theme.sh" on
+}
+
 case "${1:-toggle}" in
-    light)  apply_light ;;
-    dark)   apply_dark ;;
+    light)
+        # If glass is active, disable it first
+        "$HOME/.dotfiles/hypr/scripts/glass-theme.sh" off 2>/dev/null || true
+        apply_light
+        ;;
+    dark)
+        # If glass is active, disable it first
+        "$HOME/.dotfiles/hypr/scripts/glass-theme.sh" off 2>/dev/null || true
+        apply_dark
+        ;;
+    glass)
+        apply_glass
+        ;;
     toggle)
         current=$(get_current)
-        if [ "$current" = "light" ]; then apply_dark; else apply_light; fi
+        if [ "$current" = "glass" ]; then
+            # Glass → dark
+            "$HOME/.dotfiles/hypr/scripts/glass-theme.sh" off 2>/dev/null || true
+            apply_dark
+        elif [ "$current" = "light" ]; then
+            apply_dark
+        else
+            # dark → glass
+            apply_glass
+        fi
         ;;
     auto)
         rm -f "$OVERRIDE_FILE"
+        "$HOME/.dotfiles/hypr/scripts/glass-theme.sh" off 2>/dev/null || true
         "$HOME/.dotfiles/hypr/scripts/theme-auto.sh"
         notify-send "Tema" "Modo automático restaurado" 2>/dev/null
         ;;
     status) get_current ;;
     *)
-        echo "Uso: theme [light|dark|toggle|auto|status]"
+        echo "Uso: theme [light|dark|glass|toggle|auto|status]"
         exit 1
         ;;
 esac

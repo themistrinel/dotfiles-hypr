@@ -2,7 +2,7 @@
 
 # Gerencia o servidor EasyOCR (daemon)
 
-VENV_DIR="$HOME/.local/share/ocr-venv"
+VENV_DIR="$HOME/.venvs/ocr"
 PYTHON_BIN="$VENV_DIR/bin/python"
 PID_FILE="/tmp/ocr/daemon.pid"
 SERVER_SCRIPT="/tmp/ocr/server.py"
@@ -11,20 +11,19 @@ mkdir -p /tmp/ocr
 
 _write_server() {
     cat > "$SERVER_SCRIPT" << 'EOF'
-import os, sys, time
+import os, time
 
 INPUT_FILE  = "/tmp/ocr/daemon.input"
 OUTPUT_FILE = "/tmp/ocr/daemon.output"
 READY_FILE  = "/tmp/ocr/daemon.ready"
 STOP_FILE   = "/tmp/ocr/daemon.stop"
 
-import easyocr
-from PIL import Image
-import numpy as np
+from paddleocr import PaddleOCR
 
-reader = easyocr.Reader(['pt', 'en'], gpu=False, verbose=False)
+# Carrega modelo uma vez (mantido em memória)
+ocr = PaddleOCR(use_textline_orientation=True, lang='en')
 
-# Signal ready
+# Sinaliza que está pronto
 open(READY_FILE, 'w').close()
 
 while not os.path.exists(STOP_FILE):
@@ -36,51 +35,15 @@ while not os.path.exists(STOP_FILE):
         img_path = open(INPUT_FILE).read().strip()
         os.remove(INPUT_FILE)
 
-        img = Image.open(img_path)
-        img_w, img_h = img.size
+        result = ocr.ocr(img_path)
 
-        slice_height = 800
-        overlap = 100
-        slices = []
-        if img_h > slice_height:
-            y = 0
-            while y < img_h:
-                y_end = min(y + slice_height, img_h)
-                slices.append((y, np.array(img.crop((0, y, img_w, y_end)))))
-                if y_end == img_h:
-                    break
-                y += slice_height - overlap
-        else:
-            slices = [(0, np.array(img))]
-
-        all_results = []
-        for y_offset, arr in slices:
-            res = reader.readtext(arr, detail=1, text_threshold=0.5, low_text=0.3)
-            for bbox, text, conf in res:
-                adjusted = [[p[0], p[1] + y_offset] for p in bbox]
-                all_results.append((adjusted, text))
-
-        # Deduplica overlap
-        seen, deduped = set(), []
-        for bbox, text in all_results:
-            key = (text.strip().lower(), round(bbox[0][1] / 15))
-            if key not in seen:
-                seen.add(key)
-                deduped.append((bbox, text))
-
-        result_sorted = sorted(deduped, key=lambda x: (int(x[0][0][1] / 10), x[0][0][0]))
-
-        lines, current_line, current_y = [], [], None
-        for bbox, text in result_sorted:
-            y = bbox[0][1]
-            if current_y is None or abs(y - current_y) < 15:
-                current_line.append(text)
-                current_y = y if current_y is None else current_y
-            else:
-                lines.append(' '.join(current_line))
-                current_line, current_y = [text], y
-        if current_line:
-            lines.append(' '.join(current_line))
+        lines = []
+        if result and result[0]:
+            items = sorted(result[0], key=lambda x: x[0][0][1])
+            for item in items:
+                text = item[1][0].strip()
+                if text:
+                    lines.append(text)
 
         with open(OUTPUT_FILE, 'w') as f:
             f.write('\n'.join(lines))

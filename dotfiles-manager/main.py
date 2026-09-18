@@ -57,11 +57,11 @@ KEYBINDS = [
 CONFIGS = [
     ("Waybar", f"{DOTFILES}/waybar/style.css", "css"),
     ("Waybar Config", f"{DOTFILES}/waybar/config.jsonc", "json"),
-    ("Hyprland", f"{DOTFILES}/hypr/hyprland.conf", "conf"),
-    ("Keybinds", f"{DOTFILES}/hypr/keybinds.conf", "conf"),
-    ("Window Rules", f"{DOTFILES}/hypr/windowsrules.conf", "conf"),
-    ("Exec Autostart", f"{DOTFILES}/hypr/exec.conf", "conf"),
-    ("Monitors", f"{DOTFILES}/hypr/monitors.conf", "conf"),
+    ("Hyprland", f"{DOTFILES}/hypr/hyprland.lua", "lua"),
+    ("Keybinds", f"{DOTFILES}/hypr/keybinds.lua", "lua"),
+    ("Window Rules", f"{DOTFILES}/hypr/windowrules.lua", "lua"),
+    ("Exec Autostart", f"{DOTFILES}/hypr/exec.lua", "lua"),
+    ("Monitors", f"{DOTFILES}/hypr/monitors.lua", "lua"),
     ("Kitty", f"{DOTFILES}/kitty/kitty.conf", "conf"),
     ("Fish", f"{DOTFILES}/fish/config.fish", "fish"),
     ("Dunst", f"{DOTFILES}/dunst/dunstrc", "conf"),
@@ -228,13 +228,13 @@ def build_wallpaper_page(win_ref):
 SETTINGS = [
     ("Waybar Font", f"{DOTFILES}/waybar/style.css", r"font-family:\s*([^;]+);"),
     ("Waybar Font Size", f"{DOTFILES}/waybar/style.css", r"font-size:\s*([^;]+);"),
-    ("Hyprland gaps_in", f"{DOTFILES}/hypr/hyprland.conf", r"gaps_in\s*=\s*(\d+)"),
-    ("Hyprland gaps_out", f"{DOTFILES}/hypr/hyprland.conf", r"gaps_out\s*=\s*(\d+)"),
-    ("Hyprland border_size", f"{DOTFILES}/hypr/hyprland.conf", r"border_size\s*=\s*(\d+)"),
-    ("GTK Theme", f"{DOTFILES}/hypr/hyprland.conf", r"GTK_THEME,(.+)"),
-    ("Cursor Size", f"{DOTFILES}/hypr/hyprland.conf", r"XCURSOR_SIZE,(\d+)"),
-    ("Terminal", f"{DOTFILES}/hypr/keybinds.conf", r"\$terminal\s*=\s*(.+)"),
-    ("Browser", f"{DOTFILES}/hypr/keybinds.conf", r"\$browser\s*=\s*(.+)"),
+    ("Hyprland gaps_in", f"{DOTFILES}/hypr/hyprland.lua", r"gaps_in\s*=\s*(\d+)"),
+    ("Hyprland gaps_out", f"{DOTFILES}/hypr/hyprland.lua", r"gaps_out\s*=\s*(\d+)"),
+    ("Hyprland border_size", f"{DOTFILES}/hypr/hyprland.lua", r"border_size\s*=\s*.*(\d+)"),
+    ("GTK Theme", f"{DOTFILES}/hypr/hyprland.lua", r'hl\.env\("GTK_THEME",\s*"([^"]+)"\)'),
+    ("Cursor Size", f"{DOTFILES}/hypr/hyprland.lua", r'hl\.env\("XCURSOR_SIZE",\s*"([^"]+)"\)'),
+    ("Terminal", f"{DOTFILES}/hypr/keybinds.lua", r'local\s+terminal\s*=\s*"([^"]+)"'),
+    ("Browser", f"{DOTFILES}/hypr/keybinds.lua", r'local\s+browser\s*=\s*"([^"]+)"'),
 ]
 
 

@@ -44,6 +44,19 @@ apply_pywal() {
     fi
 }
 
+apply_glass() {
+    local glass_css="$DOTFILES_DIR/waybar/style-glass.css"
+    if [ -f "$glass_css" ]; then
+        cp "$glass_css" "$STYLE_LINK"
+        echo "glass" > "$STATE_FILE"
+        echo "[waybar-theme] Applied glass theme"
+        reload_waybar
+    else
+        echo "[waybar-theme] Glass CSS not found. Run glass-theme.sh first."
+        exit 1
+    fi
+}
+
 case "${1:-toggle}" in
     fixed)
         apply_fixed
@@ -51,9 +64,14 @@ case "${1:-toggle}" in
     pywal)
         apply_pywal
         ;;
+    glass)
+        apply_glass
+        ;;
     toggle)
         current_mode=$(get_current_mode)
-        if [ "$current_mode" = "pywal" ]; then
+        if [ "$current_mode" = "glass" ]; then
+            apply_fixed
+        elif [ "$current_mode" = "pywal" ]; then
             apply_fixed
         else
             apply_pywal
@@ -63,7 +81,7 @@ case "${1:-toggle}" in
         get_current_mode
         ;;
     *)
-        echo "Usage: $0 [toggle|fixed|pywal|current]"
+        echo "Usage: $0 [toggle|fixed|pywal|glass|current]"
         exit 1
         ;;
 esac

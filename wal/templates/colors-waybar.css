@@ -141,3 +141,28 @@ window#waybar {{
     margin-top: 5px;
     margin-left: 5px;
 }}
+
+#custom-pomodoro {{
+    background: {background};
+    color: {color7};
+    border-radius: 10px;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 5px;
+    margin-left: 5px;
+}}
+
+#custom-pomodoro.work {{
+    background: {background};
+    color: {color1};
+}}
+
+#custom-pomodoro.break {{
+    background: {background};
+    color: {color4};
+}}
+
+#custom-pomodoro.paused {{
+    background: {background};
+    color: {color8};
+}}

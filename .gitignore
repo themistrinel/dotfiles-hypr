@@ -4,3 +4,5 @@ fish/secrets.fish
 # Build artifacts
 pomodoro-tasks/build/
 dotfiles-manager/__pycache__/
+waybar/ipc-fix/*.so
+.freebuff/
