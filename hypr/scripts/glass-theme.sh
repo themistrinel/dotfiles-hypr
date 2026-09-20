@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
 # glass-theme.sh — Glass mode toggle for Hyprland
-# Usage: glass-theme.sh [on|off|toggle|status]
+# Usage: glass-theme.sh [on [dark|light]|off|refresh [dark|light]|toggle [dark|light]|status]
 #
 # Glass mode applies:
 #   - Real transparency on all surfaces
 #   - Enhanced compositor blur
 #   - Translucent Waybar, Rofi, Foot, Kitty
-#   - Colors derived from current wallpaper via pywal
+#   - Colors derived from current wallpaper via pywal (with dark/light variants)
 #
-# This does NOT change the wallpaper or pywal colors.
-# It only changes the RENDERING of the current theme.
+# This changes the RENDERING of the current theme and adapts contrast.
 
 set -euo pipefail
 
-DOTFILES="$HOME/.dotfiles"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES="$(cd "$SCRIPT_DIR/../.." && pwd)"
+[ -d "$DOTFILES/hypr" ] || DOTFILES="$HOME/.dotfiles"
+
 WAL_CACHE="$HOME/.cache/wal"
 STATE="$HOME/.cache/.glass-theme"
+VARIANT_FILE="$HOME/.cache/.glass-theme-variant"
 BACKUP_DIR="$HOME/.cache/.glass-backup"
 
 # ── Helpers ────────────────────────────────────────────────────
@@ -34,14 +37,49 @@ hex_to_rgb() {
     printf "%d, %d, %d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
 }
 
+reload_waybar_safe() {
+    if pgrep -x waybar >/dev/null; then
+        killall -SIGUSR2 waybar 2>/dev/null || true
+    else
+        setsid waybar >/dev/null 2>&1 &
+    fi
+}
+
+is_light_color() {
+    local hex="${1#\#}"
+    local r=$(( 16#${hex:0:2} ))
+    local g=$(( 16#${hex:2:2} ))
+    local b=$(( 16#${hex:4:2} ))
+    local lum=$(( (r * 299 + g * 587 + b * 114) / 1000 ))
+    (( lum >= 128 ))
+}
+
+get_variant() {
+    local requested="${1:-}"
+    if [ -n "$requested" ]; then
+        echo "$requested"
+    elif [ -f "$VARIANT_FILE" ]; then
+        cat "$VARIANT_FILE" 2>/dev/null || echo "dark"
+    else
+        local ov
+        ov=$(cat "$HOME/.cache/wal/.theme-override" 2>/dev/null || echo "")
+        if [ "$ov" = "light" ] || [ "$ov" = "glass-light" ]; then
+            echo "light"
+        else
+            echo "dark"
+        fi
+    fi
+}
+
 # ── Generate Glass Waybar CSS ──────────────────────────────────
 
 generate_waybar_glass() {
+    local variant="${1:-dark}"
     read_wal_colors || return 1
 
-    local bg_rgb; bg_rgb=$(hex_to_rgb "${C[0]}")
-    local fg="${C[7]}"
-    local fg_rgb; fg_rgb=$(hex_to_rgb "${C[7]}")
+    local bg_hex="${C[0]}"
+    local fg_hex="${C[7]}"
+
     local c1="${C[1]}"
     local c4="${C[4]}"
     local c4_rgb; c4_rgb=$(hex_to_rgb "${C[4]}")
@@ -51,9 +89,71 @@ generate_waybar_glass() {
     local c6_rgb; c6_rgb=$(hex_to_rgb "${C[6]}")
     local c8="${C[8]}"
 
+    local module_bg ws_inactive_fg ws_active_fg ws_active_bg ws_active_border
+    local ws_focused_fg ws_focused_bg ws_focused_border ws_hover_bg ws_hover_fg ws_hover_border
+    local ws_urgent_bg ws_urgent_fg pomodoro_fg pomodoro_work pomodoro_break pomodoro_paused
+
+    if [ "$variant" = "light" ]; then
+        if ! is_light_color "$bg_hex"; then
+            bg_hex="#f0f3f6"
+        fi
+        if is_light_color "$fg_hex"; then
+            fg_hex="#1a1c23"
+        fi
+        local bg_rgb; bg_rgb=$(hex_to_rgb "$bg_hex")
+        local fg="$fg_hex"
+        local fg_rgb; fg_rgb=$(hex_to_rgb "$fg_hex")
+
+        module_bg="rgba($bg_rgb, 0.58)"
+        ws_inactive_fg="rgba($fg_rgb, 0.70)"
+        ws_active_fg="#0f1117"
+        ws_active_bg="rgba($c6_rgb, 0.35)"
+        ws_active_border="rgba(0, 0, 0, 0.18)"
+        ws_focused_fg="#0f1117"
+        ws_focused_bg="rgba($c6_rgb, 0.22)"
+        ws_focused_border="rgba(0, 0, 0, 0.12)"
+        ws_hover_bg="rgba(0, 0, 0, 0.08)"
+        ws_hover_fg="#0f1117"
+        ws_hover_border="rgba(0, 0, 0, 0.16)"
+        ws_urgent_bg="rgba(225, 45, 55, 0.80)"
+        ws_urgent_fg="#ffffff"
+        pomodoro_fg="rgba(55, 60, 75, 0.85)"
+        pomodoro_work="rgba(195, 30, 65, 0.95)"
+        pomodoro_break="rgba(30, 75, 185, 0.95)"
+        pomodoro_paused="rgba(100, 105, 115, 0.75)"
+    else
+        if is_light_color "$bg_hex"; then
+            bg_hex="#14151b"
+        fi
+        if ! is_light_color "$fg_hex"; then
+            fg_hex="#e4e5eb"
+        fi
+        local bg_rgb; bg_rgb=$(hex_to_rgb "$bg_hex")
+        local fg="$fg_hex"
+        local fg_rgb; fg_rgb=$(hex_to_rgb "$fg_hex")
+
+        module_bg="rgba($bg_rgb, 0.42)"
+        ws_inactive_fg="rgba($fg_rgb, 0.75)"
+        ws_active_fg="#ffffff"
+        ws_active_bg="rgba($c6_rgb, 0.38)"
+        ws_active_border="rgba(255, 255, 255, 0.30)"
+        ws_focused_fg="#ffffff"
+        ws_focused_bg="rgba($c6_rgb, 0.25)"
+        ws_focused_border="rgba(255, 255, 255, 0.20)"
+        ws_hover_bg="rgba($fg_rgb, 0.22)"
+        ws_hover_fg="#ffffff"
+        ws_hover_border="rgba($fg_rgb, 0.35)"
+        ws_urgent_bg="rgba(240, 100, 100, 0.70)"
+        ws_urgent_fg="#ffffff"
+        pomodoro_fg="rgba(180, 170, 160, 0.85)"
+        pomodoro_work="rgba(231, 158, 176, 0.95)"
+        pomodoro_break="rgba(149, 171, 228, 0.95)"
+        pomodoro_paused="rgba(139, 142, 145, 0.75)"
+    fi
+
     cat > "$DOTFILES/waybar/style-glass.css" << CSS
 /* ═══════════════════════════════════════════════════════════════
-   Glass Waybar — generated by glass-theme.sh
+   Glass Waybar ($variant) — generated by glass-theme.sh
    Translucent surfaces with wallpaper-derived colors
    ═══════════════════════════════════════════════════════════════ */
 
@@ -83,7 +183,7 @@ window#waybar > box,
 /* ── Workspaces ─────────────────────────────────────────── */
 
 #workspaces {
-    background: rgba($bg_rgb, 0.42);
+    background: $module_bg;
     border: none;
     box-shadow: none;
     border-radius: 10px;
@@ -93,7 +193,7 @@ window#waybar > box,
 
 #workspaces button {
     padding: 1px 7px;
-    color: rgba($fg_rgb, 0.75);
+    color: $ws_inactive_fg;
     margin: 0 1px;
     border: 1px solid transparent;
     box-shadow: none;
@@ -102,33 +202,33 @@ window#waybar > box,
 }
 
 #workspaces button.active {
-    color: #ffffff;
-    background: rgba($c6_rgb, 0.38);
-    border: 1px solid rgba(255, 255, 255, 0.30);
+    color: $ws_active_fg;
+    background: $ws_active_bg;
+    border: 1px solid $ws_active_border;
     box-shadow: none;
     border-radius: 7px;
 }
 
 #workspaces button.focused {
-    color: #ffffff;
-    background: rgba($c6_rgb, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.20);
+    color: $ws_focused_fg;
+    background: $ws_focused_bg;
+    border: 1px solid $ws_focused_border;
     box-shadow: none;
     border-radius: 7px;
 }
 
 #workspaces button.urgent {
-    color: #fff;
-    background: rgba(240, 100, 100, 0.70);
+    color: $ws_urgent_fg;
+    background: $ws_urgent_bg;
     border: 1px solid rgba(255, 255, 255, 0.45);
     box-shadow: none;
     border-radius: 7px;
 }
 
 #workspaces button:hover {
-    background: rgba($fg_rgb, 0.22);
-    color: #ffffff;
-    border: 1px solid rgba($fg_rgb, 0.35);
+    background: $ws_hover_bg;
+    color: $ws_hover_fg;
+    border: 1px solid $ws_hover_border;
     box-shadow: none;
     border-radius: 7px;
 }
@@ -147,7 +247,7 @@ window#waybar > box,
 #custom-moon,
 #custom-pomodoro,
 #custom-recording {
-    background: rgba($bg_rgb, 0.42);
+    background: $module_bg;
     border: none;
     box-shadow: none;
     border-radius: 10px;
@@ -169,21 +269,21 @@ window#waybar > box,
 }
 
 #custom-pomodoro {
-    color: rgba(180, 170, 160, 0.85);
+    color: $pomodoro_fg;
     border-radius: 10px;
     margin: 2px 4px;
 }
 
 #custom-pomodoro.work {
-    color: rgba(231, 158, 176, 0.95);
+    color: $pomodoro_work;
 }
 
 #custom-pomodoro.break {
-    color: rgba(149, 171, 228, 0.95);
+    color: $pomodoro_break;
 }
 
 #custom-pomodoro.paused {
-    color: rgba(139, 142, 145, 0.75);
+    color: $pomodoro_paused;
 }
 
 #custom-window {
@@ -229,15 +329,58 @@ CSS
 # ── Generate Glass Rofi Config ─────────────────────────────────
 
 generate_rofi_glass() {
+    local variant="${1:-dark}"
     read_wal_colors || return 1
 
-    local bg_rgb; bg_rgb=$(hex_to_rgb "${C[0]}")
-    local fg="${C[7]}"
+    local bg_hex="${C[0]}"
+    local fg_hex="${C[7]}"
+
     local sel_rgb; sel_rgb=$(hex_to_rgb "${C[4]}")
+    local rofi_bg rofi_border text_main inputbar_bg inputbar_border entry_text placeholder_color sel_bg sel_text sel_border
+
+    if [ "$variant" = "light" ]; then
+        if ! is_light_color "$bg_hex"; then
+            bg_hex="#f2f4f8"
+        fi
+        if is_light_color "$fg_hex"; then
+            fg_hex="#1e1f26"
+        fi
+        local bg_rgb; bg_rgb=$(hex_to_rgb "$bg_hex")
+
+        rofi_bg="rgba($bg_rgb, 0.72)"
+        rofi_border="rgba(0, 0, 0, 0.15)"
+        text_main="#1e1f26"
+        inputbar_bg="rgba(0, 0, 0, 0.04)"
+        inputbar_border="rgba(0, 0, 0, 0.10)"
+        entry_text="#0f1015"
+        placeholder_color="rgba(85, 90, 105, 0.55)"
+        sel_bg="rgba($sel_rgb, 0.32)"
+        sel_text="#090a0f"
+        sel_border="rgba(0, 0, 0, 0.16)"
+    else
+        if is_light_color "$bg_hex"; then
+            bg_hex="#13141a"
+        fi
+        if ! is_light_color "$fg_hex"; then
+            fg_hex="#e0e0e5"
+        fi
+        local bg_rgb; bg_rgb=$(hex_to_rgb "$bg_hex")
+
+        rofi_bg="rgba($bg_rgb, 0.55)"
+        rofi_border="rgba(255, 255, 255, 0.25)"
+        text_main="#e0e0e5"
+        inputbar_bg="rgba(255, 255, 255, 0.08)"
+        inputbar_border="rgba(255, 255, 255, 0.12)"
+        entry_text="#ffffff"
+        placeholder_color="rgba(180, 185, 205, 0.50)"
+        sel_bg="rgba($sel_rgb, 0.45)"
+        sel_text="#ffffff"
+        sel_border="rgba(255, 255, 255, 0.30)"
+    fi
 
     cat > "$DOTFILES/rofi/glass.rasi" << RASI
 /* ═══════════════════════════════════════════════════════════════
-   Glass Rofi — generated by glass-theme.sh
+   Glass Rofi ($variant) — generated by glass-theme.sh
    Translucent glass surface with wallpaper-derived colors
    ═══════════════════════════════════════════════════════════════ */
 
@@ -258,14 +401,14 @@ configuration {
     padding: 0;
     spacing: 0;
     background-color: transparent;
-    text-color: #e0e0e5;
+    text-color: $text_main;
 }
 
 window {
     transparency: "real";
-    background-color: rgba($bg_rgb, 0.55);
+    background-color: $rofi_bg;
     border: 1px;
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: $rofi_border;
     border-radius: 14px;
     width: 620px;
     padding: 12px;
@@ -279,9 +422,9 @@ mainbox {
 }
 
 inputbar {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: $inputbar_bg;
     border: 1px;
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: $inputbar_border;
     border-radius: 10px;
     padding: 8px 12px;
     spacing: 10px;
@@ -293,9 +436,9 @@ prompt {
 }
 
 entry {
-    text-color: #ffffff;
+    text-color: $entry_text;
     placeholder: "Search...";
-    placeholder-color: rgba(180, 185, 205, 0.50);
+    placeholder-color: $placeholder_color;
 }
 
 listview {
@@ -308,7 +451,7 @@ listview {
 
 element {
     background-color: transparent;
-    text-color: #e0e0e5;
+    text-color: $text_main;
     border-radius: 8px;
     padding: 8px 12px;
     spacing: 12px;
@@ -327,31 +470,31 @@ element-text {
 
 element normal.normal {
     background-color: transparent;
-    text-color: #e0e0e5;
+    text-color: $text_main;
 }
 
 element alternate.normal {
     background-color: transparent;
-    text-color: #e0e0e5;
+    text-color: $text_main;
 }
 
 element selected.normal {
-    background-color: rgba($sel_rgb, 0.45);
-    text-color: #ffffff;
+    background-color: $sel_bg;
+    text-color: $sel_text;
     border: 1px;
-    border-color: rgba(255, 255, 255, 0.30);
+    border-color: $sel_border;
     border-radius: 8px;
 }
 
 element normal.active,
 element alternate.active {
     background-color: transparent;
-    text-color: #ffffff;
+    text-color: $sel_text;
 }
 
 element selected.active {
     background-color: rgba($sel_rgb, 0.55);
-    text-color: #ffffff;
+    text-color: $sel_text;
 }
 RASI
 }
@@ -359,18 +502,38 @@ RASI
 # ── Generate Glass Foot Config ─────────────────────────────────
 
 generate_foot_glass() {
+    local variant="${1:-dark}"
     read_wal_colors || return 1
 
     local bg="${C[0]#\#}"
     local fg="${C[7]#\#}"
+    local alpha="0.65"
+
+    if [ "$variant" = "light" ]; then
+        alpha="0.75"
+        if ! is_light_color "${C[0]}"; then
+            bg="f0f3f6"
+        fi
+        if is_light_color "${C[7]}"; then
+            fg="1a1c23"
+        fi
+    else
+        alpha="0.65"
+        if is_light_color "${C[0]}"; then
+            bg="14151b"
+        fi
+        if ! is_light_color "${C[7]}"; then
+            fg="e4e5eb"
+        fi
+    fi
 
     cat > "$DOTFILES/foot/foot-glass.ini" << INI
 [main]
 font=JetBrainsMono Nerd Font:size=15
 shell=fish
-alpha=0.65
+alpha=$alpha
 
-[colors-dark]
+[colors]
 background=$bg
 foreground=$fg
 regular0=${C[0]#\#}
@@ -407,27 +570,31 @@ INI
 apply_glass() {
     read_wal_colors || return 1
 
-    # Backup current configs
-    mkdir -p "$BACKUP_DIR"
-    cp "$DOTFILES/foot/foot.ini" "$BACKUP_DIR/foot.ini" 2>/dev/null || true
-    cp "$DOTFILES/waybar/style.css" "$BACKUP_DIR/style.css" 2>/dev/null || true
-    cp "$DOTFILES/rofi/config.rasi" "$BACKUP_DIR/config.rasi" 2>/dev/null || true
+    local variant
+    variant=$(get_variant "${1:-}")
+    echo "$variant" > "$VARIANT_FILE"
+
+    # Backup current configs (apenas se ainda não estiver em modo glass)
+    if [ ! -f "$STATE" ]; then
+        mkdir -p "$BACKUP_DIR"
+        cp "$DOTFILES/foot/foot.ini" "$BACKUP_DIR/foot.ini" 2>/dev/null || true
+        cp "$DOTFILES/waybar/style.css" "$BACKUP_DIR/style.css" 2>/dev/null || true
+        cp "$DOTFILES/rofi/config.rasi" "$BACKUP_DIR/config.rasi" 2>/dev/null || true
+    fi
 
     # State flag — define ANTES do reload para o hyprland.lua detectar
     echo "on" > "$STATE"
 
-    # Generate all Glass configs from current pywal colors
-    generate_waybar_glass
-    generate_rofi_glass
-    generate_foot_glass
+    # Generate all Glass configs from current pywal colors with variant
+    generate_waybar_glass "$variant"
+    generate_rofi_glass "$variant"
+    generate_foot_glass "$variant"
 
     # ── Waybar: apply Glass CSS ──
     cp "$DOTFILES/waybar/style-glass.css" "$DOTFILES/waybar/style.css"
     cp "$DOTFILES/waybar/style-glass.css" "$HOME/.config/waybar/style.css" 2>/dev/null || true
-    echo "glass" > "$DOTFILES/waybar/.theme-mode"
-    pkill -x waybar 2>/dev/null || true
-    sleep 0.5
-    setsid waybar >/dev/null 2>&1 &
+    echo "glass-$variant" > "$DOTFILES/waybar/.theme-mode"
+    reload_waybar_safe
 
     # ── Foot: apply Glass config ──
     cp "$DOTFILES/foot/foot-glass.ini" "$DOTFILES/foot/foot.ini"
@@ -440,8 +607,8 @@ apply_glass() {
     # ── Hyprland: recarrega a configuração nativa com suporte completo a Glass ──
     hyprctl reload
 
-    notify-send "🔮 Glass" "Tema Glass ativado com as cores do wallpaper" -t 2000 2>/dev/null || true
-    echo "[glass] Glass mode enabled"
+    notify-send "🔮 Glass" "Tema Glass ($variant) ativado com as cores do wallpaper" -t 2000 2>/dev/null || true
+    echo "[glass] Glass mode enabled ($variant)"
 }
 
 # ── Refresh Glass (quando o wallpaper/cores mudam) ──────────────
@@ -452,27 +619,30 @@ refresh_glass() {
     fi
     read_wal_colors || return 1
 
-    generate_waybar_glass
-    generate_rofi_glass
-    generate_foot_glass
+    local variant
+    variant=$(get_variant "${1:-}")
+    echo "$variant" > "$VARIANT_FILE"
+
+    generate_waybar_glass "$variant"
+    generate_rofi_glass "$variant"
+    generate_foot_glass "$variant"
 
     cp "$DOTFILES/waybar/style-glass.css" "$DOTFILES/waybar/style.css"
     cp "$DOTFILES/waybar/style-glass.css" "$HOME/.config/waybar/style.css" 2>/dev/null || true
-    pkill -x waybar 2>/dev/null || true
-    sleep 0.5
-    setsid waybar >/dev/null 2>&1 &
+    reload_waybar_safe
 
     cp "$DOTFILES/rofi/glass.rasi" "$DOTFILES/rofi/config.rasi"
     cp "$DOTFILES/rofi/config.rasi" "$HOME/.config/rofi/config.rasi" 2>/dev/null || true
 
     hyprctl reload
-    echo "[glass] Glass theme refreshed with new wallpaper colors"
+    echo "[glass] Glass theme ($variant) refreshed with new wallpaper colors"
 }
 
 # ── Remove Glass ───────────────────────────────────────────────
 
 remove_glass() {
     rm -f "$STATE"
+    rm -f "$VARIANT_FILE"
 
     # ── Restore Waybar ──
     WAL_CSS="$HOME/.cache/wal/colors-waybar.css"
@@ -484,10 +654,7 @@ remove_glass() {
         cp "$BACKUP_DIR/style.css" "$HOME/.config/waybar/style.css" 2>/dev/null || true
     fi
     echo "pywal" > "$DOTFILES/waybar/.theme-mode"
-    pkill waybar 2>/dev/null || true
-    sleep 0.3
-    waybar &>/dev/null &
-    disown
+    reload_waybar_safe
 
     # ── Restore Foot ──
     if [ -f "$BACKUP_DIR/foot.ini" ]; then
@@ -504,9 +671,6 @@ remove_glass() {
         cp "$DOTFILES/rofi/config.rasi" "$HOME/.config/rofi/config.rasi" 2>/dev/null || true
     fi
 
-    # ── State ──
-    rm -f "$STATE"
-
     # ── Hyprland: recarrega para restaurar o look padrão ──
     hyprctl reload
 
@@ -518,30 +682,31 @@ remove_glass() {
 
 case "${1:-toggle}" in
     on)
-        apply_glass
+        apply_glass "${2:-}"
         ;;
     off)
         remove_glass
         ;;
     refresh)
-        refresh_glass
+        refresh_glass "${2:-}"
         ;;
     toggle)
         if [ -f "$STATE" ]; then
             remove_glass
         else
-            apply_glass
+            apply_glass "${2:-}"
         fi
         ;;
     status)
         if [ -f "$STATE" ]; then
-            echo "glass"
+            var=$(get_variant)
+            echo "glass-$var"
         else
             echo "off"
         fi
         ;;
     *)
-        echo "Usage: glass-theme.sh [on|off|refresh|toggle|status]"
+        echo "Usage: glass-theme.sh [on [dark|light]|off|refresh [dark|light]|toggle [dark|light]|status]"
         exit 1
         ;;
 esac

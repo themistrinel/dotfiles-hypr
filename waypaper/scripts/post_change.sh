@@ -19,15 +19,22 @@ case "$extension" in
         ;;
 esac
 
+set_wallpaper_img() {
+    local img="$1"
+    if command -v awww >/dev/null 2>&1; then
+        awww img "$img" --transition-type grow --transition-pos top-right --transition-duration 2
+    elif command -v swww >/dev/null 2>&1; then
+        swww img "$img" --transition-type grow --transition-pos top-right --transition-duration 2
+    fi
+}
+
 if [ "$is_video" = true ]; then
     # Extract the first frame as high quality image for pywal
     ffmpeg -y -i "$WALLPAPER" -frames:v 1 -q:v 2 "$FRAME_OUT" > /dev/null 2>&1
     COLOR_SOURCE="$FRAME_OUT"
 
-    # Set the extracted frame as static wallpaper with swww
-    if command -v swww >/dev/null 2>&1; then
-        swww img "$FRAME_OUT" --transition-type grow --transition-pos top-right --transition-duration 2
-    fi
+    # Set the extracted frame as static wallpaper with awww/swww
+    set_wallpaper_img "$FRAME_OUT"
 
     # Stop any previous video and start the new one
     killall mpvpaper 2>/dev/null
@@ -40,9 +47,7 @@ else
     # Kill mpvpaper if we are switching to a static image
     killall mpvpaper 2>/dev/null
     # Apply static wallpaper
-    if command -v swww >/dev/null 2>&1; then
-        swww img "$WALLPAPER" --transition-type grow --transition-pos top-right --transition-duration 2
-    fi
+    set_wallpaper_img "$WALLPAPER"
 fi
 
 # Run pywal to generate colors (skip GTK theming)
@@ -81,22 +86,65 @@ else
         cp "$WAL_CSS" "$WAYBAR_STYLE"
     fi
 
-    # Reinicia o waybar
-    pkill waybar 2>/dev/null
-    sleep 0.3
-    waybar &>/dev/null &
-    disown
+    # Recarrega o waybar de forma segura (SIGUSR2 recarrega CSS/config sem duplicar processo)
+    if pgrep -x waybar >/dev/null; then
+        killall -SIGUSR2 waybar 2>/dev/null || true
+    else
+        setsid waybar >/dev/null 2>&1 &
+    fi
 fi
 
 # Update the default wallpaper for the current theme in theme-schedule.conf
-THEME_CONF="$HOME/.dotfiles/hypr/scripts/theme-schedule.conf"
-OVERRIDE_FILE="$HOME/.cache/wal/.theme-override"
-if [ -f "$THEME_CONF" ]; then
-    current_theme=$(cat "$OVERRIDE_FILE" 2>/dev/null || echo "")
-    wallpaper_name=$(basename "$WALLPAPER")
-    if [ "$current_theme" = "light" ]; then
-        sed -i "s|^LIGHT_WALLPAPER=.*|LIGHT_WALLPAPER=\"$wallpaper_name\"|" "$THEME_CONF"
-    elif [ "$current_theme" = "dark" ]; then
-        sed -i "s|^DARK_WALLPAPER=.*|DARK_WALLPAPER=\"$wallpaper_name\"|" "$THEME_CONF"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+get_current_theme() {
+    local ov auto_mode
+    ov=$(cat "$HOME/.cache/wal/.theme-override" 2>/dev/null || echo "")
+    if [ -n "$ov" ]; then
+        echo "$ov"
+        return
     fi
+    auto_mode=$(cat "$HOME/.cache/wal/.theme-auto-mode" 2>/dev/null || echo "")
+    if [ -n "$auto_mode" ]; then
+        echo "$auto_mode"
+        return
+    fi
+    local conf="$HOME/.dotfiles/hypr/scripts/theme-schedule.conf"
+    local l_start="06:00" d_start="18:00"
+    if [ -f "$conf" ]; then
+        source "$conf" 2>/dev/null || true
+        l_start="${LIGHT_START:-06:00}"
+        d_start="${DARK_START:-18:00}"
+    fi
+    to_min() { IFS=: read h m <<< "$1"; echo $(( 10#$h * 60 + 10#$m )); }
+    local now; now=$(to_min "$(date +%H:%M)")
+    local light; light=$(to_min "$l_start")
+    local dark; dark=$(to_min "$d_start")
+    if (( now >= light && now < dark )); then
+        echo "light"
+    else
+        echo "dark"
+    fi
+}
+
+current_theme=$(get_current_theme)
+wallpaper_name=$(basename "$WALLPAPER")
+
+confs=("$DOTFILES_DIR/hypr/scripts/theme-schedule.conf" "$HOME/.dotfiles/hypr/scripts/theme-schedule.conf")
+if command -v git >/dev/null 2>&1; then
+    while IFS= read -r wt; do
+        wt_path=$(awk '{print $1}' <<< "$wt")
+        [ -n "$wt_path" ] && [ -d "$wt_path" ] && confs+=("$wt_path/hypr/scripts/theme-schedule.conf")
+    done < <(git -C "$DOTFILES_DIR" worktree list 2>/dev/null || true)
 fi
+
+for conf in "${confs[@]}"; do
+    if [ -f "$conf" ]; then
+        if [ "$current_theme" = "light" ] || [ "$current_theme" = "glass-light" ]; then
+            sed -i "s|^LIGHT_WALLPAPER=.*|LIGHT_WALLPAPER=\"$wallpaper_name\"|" "$conf"
+        elif [ "$current_theme" = "dark" ] || [ "$current_theme" = "glass-dark" ]; then
+            sed -i "s|^DARK_WALLPAPER=.*|DARK_WALLPAPER=\"$wallpaper_name\"|" "$conf"
+        fi
+    fi
+done
