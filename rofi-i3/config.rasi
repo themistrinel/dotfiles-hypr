@@ -15,7 +15,7 @@ configuration {
     fg:      #ebdbb2;
     sel-bg:  #3c3836;
     sel-fg:  #83a598;
-    border:  #458588;
+    accent:  #458588;
 
     background-color: transparent;
     text-color:       @fg;
@@ -23,8 +23,8 @@ configuration {
 
 window {
     background-color: @bg;
-    border:           2px solid;
-    border-color:     @border;
+    border:           2px;
+    border-color:     @accent;
     width:            480px;
     border-radius:    4px;
 }

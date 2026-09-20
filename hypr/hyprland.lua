@@ -69,7 +69,7 @@ hl.env("GDK_BACKEND",              "wayland,x11")
 hl.env("XDG_CURRENT_DESKTOP",      "Hyprland")
 hl.env("XDG_SESSION_TYPE",         "wayland")
 hl.env("XDG_SESSION_DESKTOP",      "Hyprland")
-hl.env("GTK_THEME",             "Adwaita-dark")
+hl.env("GTK_THEME",             "Adwaita")
 hl.env("GTK2_RC_FILES",            os.getenv("HOME") .. "/.config/gtk-2.0/gtkrc")
 hl.env("FREETYPE_PROPERTIES",      "truetype:interpreter-version=40")
 

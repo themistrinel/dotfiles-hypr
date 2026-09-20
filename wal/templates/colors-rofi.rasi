@@ -1,10 +1,11 @@
 * {{
-    background:     {background}FF;
-    background-alt: {color1}FF;
-    foreground:     {foreground}FF;
-    selected:       {color4}FF;
-    active:         {color2}FF;
-    urgent:         {color1}FF;
+    background:         {background}F0;
+    background-alt:     {color8}26;
+    foreground:         {foreground}FF;
+    selected:           {color4}4D;
+    selected-border:    {color4}80;
+    active:             {color2}FF;
+    urgent:             {color1}FF;
     
     color0:         {color0}FF;
     color1:         {color1}FF;

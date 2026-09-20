@@ -57,6 +57,8 @@ if status is-interactive
     abbr lla 'ls -la'
     abbr anti 'antigravity'
     abbr ag 'antigravity'
+    abbr agya 'agy --dangerously-skip-permissions --mode accept-edits'
+    abbr agy-auto 'agy --dangerously-skip-permissions --mode accept-edits'
 
     # Custom colours
     set -g fish_color_autosuggestion 'brblack'
@@ -104,8 +106,23 @@ fish_add_path "$PYENV_ROOT/bin"
 pyenv init - fish | source
 # opencode
 fish_add_path /home/abyssal/.opencode/bin
+# OpenCode sempre com modo YOLO
+function opencode
+    set -l subcmds completion acp mcp attach debug providers auth agent upgrade uninstall serve web models stats export import github pr session plugin plug db
+    if test (count $argv) -gt 0; and contains -- $argv[1] $subcmds
+        command opencode $argv
+    else if test (count $argv) -gt 0; and test "$argv[1]" = "run"
+        command opencode run --yolo $argv[2..-1]
+    else
+        command opencode --yolo $argv
+    end
+end
 
 # open-design: aponta para o vela CI/CD como fallback
 set -gx OPEN_DESIGN_VELA_CLI_BIN (command -s vela 2>/dev/null; or echo "")
 # npm-global: usa fish_add_path em vez de set -Ux (evita commit universal lento na inicialização)
 fish_add_path --prepend --global $HOME/.npm-global/bin
+
+
+# Added by Antigravity CLI installer
+set -gx PATH "/home/abyssal/.local/bin" $PATH

@@ -208,7 +208,7 @@ configuration {
     fg:      $FG;
     sel-bg:  $SEL_BG;
     sel-fg:  $SEL_FG;
-    border:  $BORDER;
+    accent:  $BORDER;
 
     background-color: transparent;
     text-color:       @fg;
@@ -216,8 +216,8 @@ configuration {
 
 window {
     background-color: @bg;
-    border:           2px solid;
-    border-color:     @border;
+    border:           2px;
+    border-color:     @accent;
     width:            480px;
     border-radius:    4px;
 }
