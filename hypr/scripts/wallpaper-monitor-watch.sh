@@ -4,8 +4,13 @@ handle() {
   case $1 in
     monitoradded*HDMI*)
       sleep 0.5
-      wall=$(cat "$HOME/.cache/wal/wal" 2>/dev/null) && [ -f "$wall" ] && \
-        swww img "$wall" --transition-type none
+      wall=$(cat "$HOME/.cache/wal/wal" 2>/dev/null) && [ -f "$wall" ] && {
+        if command -v awww >/dev/null 2>&1; then
+          awww img "$wall" --transition-type none
+        elif command -v swww >/dev/null 2>&1; then
+          swww img "$wall" --transition-type none
+        fi
+      }
       ;;
   esac
 }
